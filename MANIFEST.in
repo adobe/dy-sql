@@ -1,0 +1,2 @@
+include dysql/VERSION
+include LICENSE.txt

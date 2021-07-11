@@ -1,0 +1,3 @@
+-e .
+
+#bump2version is used for bumping versions, but not within the application itself
