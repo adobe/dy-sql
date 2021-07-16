@@ -1,4 +1,3 @@
-# pylint: disable=missing-function-docstring
 import re
 
 from typing import Iterable, Optional, Tuple, Union
@@ -148,7 +147,7 @@ class QueryDataError(Exception):
 
 
 class QueryData:
-    # pylint: disable=line-too-long,too-few-public-methods
+    # pylint: disable=too-few-public-methods
     """
     Query data is a wrapper class that allows us to pass back information for a query with more
     information and specification. this helps to have template queries with template parameters but
@@ -164,21 +163,34 @@ class QueryData:
             examples of a queryparams passed to a QueryData
 
                 Single Object
-                QueryData("SELECT * FROM table WHERE value_a=:value_a and value_b=:value_b", query_params={'value_a': 1, 'value_b': 'b' })
+                QueryData(
+                    "SELECT * FROM table WHERE value_a=:value_a and value_b=:value_b",
+                    query_params={'value_a': 1, 'value_b': 'b' }
+                )
 
-                List of Objects (Note: this will create a query for each object, it may not be possible or even desirable but, using template_params will create a single query with the params)
-                QueryData("SELECT * FROM table WHERE value_a=:value_a` and value_b=:value_b", query_params=[{'value_a': 1, 'value_b': 'b' }, {'value_a': 1, 'value_b': 'b' }])
+                List of Objects (Note: this will create a query for each object, it may not be possible or
+                    even desirable but, using template_params will create a single query with the params)
+                QueryData(
+                    "SELECT * FROM table WHERE value_a=:value_a` and value_b=:value_b",
+                    query_params=[{'value_a': 1, 'value_b': 'b' }, {'value_a': 1, 'value_b': 'b' }]
+                )
         :param template_params: these are templates that can be added to queries to generate a single
             parameterized query.
 
             examples of current list templates and transformations
 
                 "IN (... )"
-                QueryData("SELECT * FROM table where name {in__name}", template_params={'in__name' : ['bob','tom','chic']})
+                QueryData(
+                    "SELECT * FROM table where name {in__name}",
+                    template_params={'in__name' : ['bob','tom','chic']}
+                )
                 {in__actor.name} ->  actor.name IN ('bob', 'tom', ' ),
 
                 "NOT IN (... )"
-                QueryData("SELECT * FROM table wher name {in__name}", template_params={'in__name' : ['bob','tom','chic']})
+                QueryData(
+                    "SELECT * FROM table wher name {in__name}",
+                    template_params={'in__name' : ['bob','tom','chic']}
+                )
                 {not_in__actor.name} ->  actor.name NOT IN ('name1','name2',...),
 
                 "VALUES (), (), ()..."

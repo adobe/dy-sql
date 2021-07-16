@@ -47,12 +47,10 @@ class TestSqlSelectDecorator:
             select_with_string()
 
     def test_map_not_specified(self, mock_results, mock_engine):
-        # pylint: disable=line-too-long
         mock_engine.connect.return_value.execution_options.return_value.execute.return_value = mock_results
         assert isinstance(list(self._select_all())[0], DbMapResult)
 
     def test_single(self, mock_results, mock_engine):
-        # pylint: disable=line-too-long
         mock_engine.connect.return_value.execution_options.return_value.execute.return_value = mock_results
         result = self._select_single()
         assert isinstance(result, DbMapResult)
@@ -67,7 +65,6 @@ class TestSqlSelectDecorator:
     def test_execute_no_params(self, mock_engine):
         self._select_all()
         mock_engine.connect.return_value.execution_options.return_value.execute.assert_called()
-        # pylint: disable=line-too-long
         call_args = mock_engine.connect.return_value.execution_options.return_value.execute.call_args
         assert call_args[0][0].text == "SELECT * FROM my_table"
         assert call_args[0][1] == {}
@@ -76,13 +73,11 @@ class TestSqlSelectDecorator:
         self._select_filtered(3)
         mock_engine.connect.return_value.execution_options.return_value.execute.assert_called()
 
-        # pylint: disable=line-too-long
         call_args = mock_engine.connect.return_value.execution_options.return_value.execute.call_args
         assert call_args[0][0].text == "SELECT * FROM my_table WHERE id=:id"
         assert call_args[0][1] == {'id': 3}
 
     def test_list_results_map(self, mock_results, mock_engine):
-        # pylint: disable=line-too-long
         mock_engine.connect.return_value.execution_options.return_value.execute.return_value = [mock_results[2]]
         results = self._select_filtered(3)
 
@@ -231,9 +226,16 @@ class TestSqlUpdateDecorator:
         execute_call = mock_engine.connect.return_value.execution_options.return_value.execute
         assert execute_call.call_count == 2
 
-        # pylint: disable=line-too-long
-        self._expect_args_list(execute_call.call_args_list[0], "INSERT some VALUES ( :values__in_0_0, :values__in_0_1 ), ( :values__in_1_0, :values__in_1_1 ), ( :values__in_2_0, :values__in_2_1 ) ")
-        self._expect_args_list(execute_call.call_args_list[1], "INSERT some more VALUES ( :values__other_0_0, :values__other_0_1 ), ( :values__other_1_0, :values__other_1_1 ), ( :values__other_2_0, :values__other_2_1 ) ")
+        self._expect_args_list(
+            execute_call.call_args_list[0],
+            "INSERT some VALUES ( :values__in_0_0, :values__in_0_1 ), ( :values__in_1_0, :values__in_1_1 ), "
+            "( :values__in_2_0, :values__in_2_1 ) "
+        )
+        self._expect_args_list(
+            execute_call.call_args_list[1],
+            "INSERT some more VALUES ( :values__other_0_0, :values__other_0_1 ), "
+            "( :values__other_1_0, :values__other_1_1 ), ( :values__other_2_0, :values__other_2_1 ) "
+        )
 
     def test_execute_multi_yield_and_lists_some_no_params(self, mock_engine):
         expected_values = [
@@ -246,8 +248,11 @@ class TestSqlUpdateDecorator:
         execute_call = mock_engine.connect.return_value.execution_options.return_value.execute
         assert execute_call.call_count == 4
 
-        # pylint: disable=line-too-long
-        self._expect_args_list(execute_call.call_args_list[0], "INSERT some VALUES ( :values__in_0_0, :values__in_0_1 ), ( :values__in_1_0, :values__in_1_1 ), ( :values__in_2_0, :values__in_2_1 ) ")
+        self._expect_args_list(
+            execute_call.call_args_list[0],
+            "INSERT some VALUES ( :values__in_0_0, :values__in_0_1 ), ( :values__in_1_0, :values__in_1_1 ), "
+            "( :values__in_2_0, :values__in_2_1 ) "
+        )
         self._expect_args_list(execute_call.call_args_list[1], "UPDATE some more")
         self._expect_args_list(execute_call.call_args_list[2], "UPDATE some more")
         self._expect_args_list(execute_call.call_args_list[3], "DELETE some more")
@@ -316,9 +321,14 @@ class TestSqlUpdateDecorator:
 
         NOTE:
         """
-        # pylint: disable=line-too-long
-        yield QueryData("INSERT some {values__in}", template_params=_get_template_params('values__in',multiple_values))
-        yield QueryData("INSERT some more {values__other}", template_params=_get_template_params('values__other',other_values))
+        yield QueryData(
+            "INSERT some {values__in}",
+            template_params=_get_template_params('values__in',multiple_values)
+        )
+        yield QueryData(
+            "INSERT some more {values__other}",
+            template_params=_get_template_params('values__other',other_values)
+        )
 
     @staticmethod
     @sqlupdate()

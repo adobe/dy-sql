@@ -20,6 +20,7 @@ DATABASES: dict = {}
 
 
 def set_default_database(database_name):
+    # pylint: disable=global-statement
     global DEFAULT_DATABASE
     DEFAULT_DATABASE = database_name
 
@@ -33,7 +34,7 @@ def set_database_parameters(
         pool_size: int = 10,
         pool_recycle: int = 3600,
         echo_queries: bool = False,
-):
+):  # pylint: disable=too-many-arguments
     """
     Initializes the parameters to use when connecting to the database. This is a subset of the parameters
     used by sqlalchemy.
@@ -49,6 +50,7 @@ def set_database_parameters(
     :param echo_queries: this tells sqlalchemy to print the queries when set to True (default false)
     :exception DBNotPrepareError: happens when required parameters are missing
     """
+    # pylint: disable=global-statement
     global DEFAULT_DATABASE
     DEFAULT_DATABASE = database
     required_param_missing = 'Database parameter "{}" is not set or empty and is required'
@@ -117,7 +119,6 @@ class _ConnectionManager:
         database_parameters = current_database.get('parameters', {})
 
         if not database_parameters:
-            # pylint: disable=line-too-long
             raise DBNotPreparedError(
                 'Unable to connect to a database, set_database_parameters must first be called')
 

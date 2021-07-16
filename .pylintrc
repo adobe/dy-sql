@@ -142,7 +142,8 @@ disable=print-statement,
         logging-fstring-interpolation,
         missing-module-docstring,
         missing-class-docstring,
-        missing-function-docstring
+        missing-function-docstring,
+        duplicate-code
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

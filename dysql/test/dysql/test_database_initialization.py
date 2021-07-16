@@ -1,4 +1,5 @@
-import unittest
+# pylint: disable=protected-access
+
 import pytest
 
 import dysql.connections
@@ -16,12 +17,10 @@ class TestDatabaseInitialization:
     @staticmethod
     @pytest.fixture(autouse=True)
     def mock_engine():
-        # pylint: disable=protected-access
         dysql.connections.DATABASES = {}
         return setup_mock_engine()
 
     def test_nothing_set(self):
-        # pylint: disable=protected-access
         dysql.connections.DATABASES = {}
         with pytest.raises(DBNotPreparedError) as error:
             self.query()

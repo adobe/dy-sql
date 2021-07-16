@@ -1,3 +1,5 @@
+# pylint: disable=too-few-public-methods
+
 import abc
 import logging
 from collections import OrderedDict
@@ -25,7 +27,6 @@ class DbMapResultBase(abc.ABC):
         Implements logic to handle the mapping of individual record objects from DB records.
         :param record: a record row from the database
         """
-        pass
 
     @abc.abstractmethod
     def raw(self) -> dict:
@@ -33,7 +34,6 @@ class DbMapResultBase(abc.ABC):
         Retrieves the raw data stored in this object as a dictionary.
         :return: the dict representing the object data
         """
-        pass
 
     @abc.abstractmethod
     def has(self, field: str) -> bool:
@@ -42,7 +42,6 @@ class DbMapResultBase(abc.ABC):
         :param field: the field to check
         :return: True if the field exists, false otherwise
         """
-        pass
 
     @abc.abstractmethod
     def get(self, field: str, default: Any = None) -> Any:
@@ -52,7 +51,6 @@ class DbMapResultBase(abc.ABC):
         :param default: the default value to return if the field is not available (defaults to None)
         :return: the value of the field or the default value
         """
-        pass
 
 
 class DbMapResult(DbMapResultBase):

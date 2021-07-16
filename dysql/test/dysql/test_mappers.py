@@ -1,4 +1,4 @@
-# pylint: disable=missing-function-docstring
+
 import pytest
 
 from dysql import (

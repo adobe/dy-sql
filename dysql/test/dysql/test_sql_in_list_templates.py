@@ -1,4 +1,4 @@
-# pylint: disable=missing-function-docstring,disable=too-many-public-methods
+# pylint: disable=too-many-public-methods
 import pytest
 
 import dysql
@@ -35,7 +35,6 @@ def test_list_in__strings(mock_engine):
         "SELECT * FROM table WHERE {in__column_a}",
         template_params={'in__column_a': ['a', 'b', 'c', 'd']}
     )
-    # pylint: disable=line-too-long
     _verify_query_params(
         mock_engine,
         "SELECT * FROM table WHERE column_a IN ( :in__column_a_0, :in__column_a_1, :in__column_a_2, :in__column_a_3 ) ",
@@ -52,10 +51,10 @@ def test_list_not_in_numbers(mock_engine):
         "SELECT * FROM table WHERE {not_in__column_b}",
         template_params={'not_in__column_b': [1, 2, 3, 4]}
     )
-    # pylint: disable=line-too-long
     _verify_query_params(
         mock_engine,
-        "SELECT * FROM table WHERE column_b NOT IN ( :not_in__column_b_0, :not_in__column_b_1, :not_in__column_b_2, :not_in__column_b_3 ) ",
+        "SELECT * FROM table WHERE column_b NOT IN ( :not_in__column_b_0, :not_in__column_b_1, "
+        ":not_in__column_b_2, :not_in__column_b_3 ) ",
         {
             'not_in__column_b_0': 1,
             'not_in__column_b_1': 2,
@@ -69,10 +68,10 @@ def test_list_not_in_strings(mock_engine):
         "SELECT * FROM table WHERE {not_in__column_b}",
         template_params={'not_in__column_b': ['a', 'b', 'c', 'd']}
     )
-    # pylint: disable=line-too-long
     _verify_query_params(
         mock_engine,
-        "SELECT * FROM table WHERE column_b NOT IN ( :not_in__column_b_0, :not_in__column_b_1, :not_in__column_b_2, :not_in__column_b_3 ) ",
+        "SELECT * FROM table WHERE column_b NOT IN ( :not_in__column_b_0, :not_in__column_b_1, "
+        ":not_in__column_b_2, :not_in__column_b_3 ) ",
         {
             'not_in__column_b_0': 'a',
             'not_in__column_b_1': 'b',
@@ -89,8 +88,7 @@ def test_list_in_handles_empty(mock_engine):
     _verify_query(mock_engine, "SELECT * FROM table WHERE 1 <> 1 ")
 
 
-def test_list_in_handles_no_param(mock_engine):
-    # pylint: disable=line-too-long
+def test_list_in_handles_no_param():
     with pytest.raises(dysql.query_utils.ListTemplateException, match="['in__column_a']"):
         _query("SELECT * FROM table WHERE {in__column_a}")
 
@@ -99,7 +97,6 @@ def test_list_in_multiple_lists(mock_engine):
     _query("SELECT * FROM table WHERE {in__column_a} OR {in__column_b}", template_params={
         'in__column_a': ['first', 'second'],
         'in__column_b': [1, 2]})
-    # pylint: disable=line-too-long
     _verify_query(
         mock_engine,
         "SELECT * FROM table WHERE column_a IN ( :in__column_a_0, :in__column_a_1 ) "
@@ -118,14 +115,12 @@ def test_list_in_multiple_lists_one_empty(mock_engine):
 
 
 def test_list_in_multiple_lists_one_missing():
-    # pylint: disable=line-too-long
     with pytest.raises(dysql.query_utils.ListTemplateException, match="['in__column_a']"):
         _query("SELECT * FROM table WHERE {in__column_a} OR {in__column_b} ",
                     template_params={'in__column_b': [1, 2]})
 
 
 def test_list_in_multiple_lists_all_missing():
-    # pylint: disable=line-too-long
     with pytest.raises(dysql.query_utils.ListTemplateException, match="['in__column_a','in__column_b']"):
         _query("SELECT * FROM table WHERE {in__column_a} OR {in__column_b} ")
 
@@ -139,7 +134,6 @@ def test_list_not_in_handles_empty(mock_engine):
 
 
 def test_list_not_in_handles_no_param():
-    # pylint: disable=line-too-long
     with pytest.raises(dysql.query_utils.ListTemplateException, match="['not_in__column_b']"):
         _query("SELECT * FROM table WHERE {not_in__column_b} ")
 
@@ -161,7 +155,6 @@ def test_list_gives_template_space_after(mock_engine):
 def test_list_gives_template_space_before_and_after(mock_engine):
     _query("SELECT * FROM table WHERE{in__space}AND other_condition = 1",
                 template_params={'in__space': [9, 8]})
-    # pylint: disable=line-too-long
     _verify_query(
         mock_engine,
         "SELECT * FROM table WHERE space IN ( :in__space_0, :in__space_1 ) AND other_condition = 1"
@@ -185,8 +178,10 @@ def test_template_handles_table_qualifier(mock_engine):
         "SELECT * FROM table WHERE {in__table.column}",
         template_params={'in__table.column': [1, 2]}
     )
-    # pylint: disable=line-too-long
-    _verify_query(mock_engine, "SELECT * FROM table WHERE table.column IN ( :in__table_column_0, :in__table_column_1 ) ")
+    _verify_query(
+        mock_engine,
+        "SELECT * FROM table WHERE table.column IN ( :in__table_column_0, :in__table_column_1 ) "
+    )
     _verify_query_args(
         mock_engine, {
         'in__table_column_0': 1,
@@ -199,7 +194,6 @@ def test_template_handles_multiple_table_qualifier(mock_engine):
         "SELECT * FROM table WHERE {in__table.column} AND {not_in__other_column}",
         template_params={'in__table.column': [1, 2], 'not_in__other_column': ['a', 'b']}
     )
-    # pylint: disable=line-too-long
     _verify_query(
         mock_engine,
         "SELECT * FROM table WHERE table.column IN ( :in__table_column_0, :in__table_column_1 ) "
@@ -234,8 +228,9 @@ def test_multiple_templates_same_column_diff_table(mock_engine):
     # the query we actually sent
     _query("SELECT * FROM table WHERE {in__table.status} AND {in__other_table.status}",
                 template_params=template_params)
-    # pylint: disable=line-too-long
-    expected_query = "SELECT * FROM table WHERE table.status IN ( :in__table_status_0, :in__table_status_1, :in__table_status_2 ) AND other_table.status IN ( :in__other_table_status_0, :in__other_table_status_1 ) "
+    expected_query = "SELECT * FROM table WHERE table.status IN ( :in__table_status_0, :in__table_status_1, " \
+                     ":in__table_status_2 ) AND other_table.status IN ( :in__other_table_status_0, " \
+                     ":in__other_table_status_1 ) "
 
     connection = mock_engine.connect.return_value.execution_options.return_value
     execute_call = connection.execute

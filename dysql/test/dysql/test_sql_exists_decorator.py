@@ -1,5 +1,6 @@
-import pytest
 from unittest.mock import Mock
+
+import pytest
 
 from dysql import sqlexists, QueryData
 from dysql.test.dysql import setup_mock_engine
@@ -18,6 +19,7 @@ EXISTS_QUERIES = {
     'true_params': BASE_EXISTS_QUERY.format(TRUE_QUERY_PARAMS),
     'false_params': BASE_EXISTS_QUERY.format(FALSE_QUERY_PARAMS),
 }
+
 
 @pytest.fixture(autouse=True)
 def mock_engine_fixture():
