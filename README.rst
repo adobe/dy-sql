@@ -2,15 +2,16 @@
  Dynamic SQL (dy-sql)
 ######################
 
-Mariadb Sql decorators
-######################
-SQL decorators are a way to help us map our data in python to sql queries.
-When we select insert,update, or delete the queries, we pass the data we want 
+This project consists of a set of python decorators that eases integration with SQL databases. These decorators
+may trigger queries, inserts, updates, and deletes.
+
+The decorators are a way to help us map our data in python to SQL queries and vice versa.
+When we select, insert, update, or delete the queries, we pass the data we want
 to insert along with a well defined query.
 
 This is designed to be done with minimal setup and coding. You need to specify 
-how to set the database up and annotate any sql query/updates you have with a 
-decorator that fits your needs
+the database connection parameters and annotate any SQL queries/updates you have with the
+decorator that fits your needs.
 
 Component Breakdown
 ===================
@@ -29,7 +30,7 @@ app, call the init function like in the following example.
 
 .. code-block:: python
 
-    from sawrapper import set_database_parameters
+    from dysql import set_database_parameters
 
 
     def set_database_from_config():
