@@ -8,11 +8,11 @@ extension-pkg-whitelist=
 # Specify a score threshold to be exceeded before program exits with error.
 fail-under=10.0
 
-# Add files or directories to the blacklist. They should be base names, not
+# Add files or directories to the ignore list. They should be base names, not
 # paths.
 ignore=CVS
 
-# Add files or directories matching the regex patterns to the blacklist. The
+# Add files or directories matching the regex patterns to the ignore list. The
 # regex matches against base names, not paths.
 ignore-patterns=
 
@@ -31,7 +31,12 @@ limit-inference-results=100
 
 # List of plugins (as comma separated values of python module names) to load,
 # usually to register additional checkers.
-load-plugins=
+load-plugins=pylintfileheader
+
+# The file header to enforce
+file-header-path=license-header.py
+# Ignore empty files such as __init__.py
+file-header-ignore-empty-files=yes
 
 # Pickle collected data for later comparisons.
 persistent=yes

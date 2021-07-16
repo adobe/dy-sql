@@ -15,7 +15,7 @@ decorator that fits your needs.
 
 Component Breakdown
 ===================
-* **set_database_params** - this function needs to be used to set the database parameters so when a decorator function is called, it can initialize a connection pool to a correct database.
+* **set_database_parameters** - this function needs to be used to set the database parameters so when a decorator function is called, it can initialize a connection pool to a correct database.
 * **DbMapResult** - this is a base class that can be used when selecting out data that helps to map the results of a query to an object in python
 * **@sqlquery** - this is a decorator for select queries that can return a sql result in a DbMapResult
 * **@sqlinsert** - this is a decorator for any queries that can change data in the database. This can take a set of values and yield multiple operations back for insertions inside of a transaction.
