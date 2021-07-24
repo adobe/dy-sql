@@ -34,7 +34,7 @@ limit-inference-results=100
 load-plugins=pylintfileheader
 
 # The file header to enforce
-file-header-path=license-header.py
+file-header-path=.pylint-license-header
 # Ignore empty files such as __init__.py
 file-header-ignore-empty-files=yes
 
