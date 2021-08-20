@@ -87,11 +87,11 @@ class DbMapResult(DbMapResultBase):
             return value
 
         raw = {}
-        for k in self.__dict__:
-            if isinstance(self.__dict__[k], list):
-                raw[k] = list(map(get_raw, self.__dict__[k]))
+        for key, value in self.__dict__.items():
+            if isinstance(value, list):
+                raw[key] = list(map(get_raw, value))
             else:
-                raw[k] = get_raw(self.__dict__[k])
+                raw[key] = get_raw(value)
         # Remove the id field if it was never set
         if raw.get('id') is None:
             del raw['id']

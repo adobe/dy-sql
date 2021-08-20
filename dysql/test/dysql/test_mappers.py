@@ -23,7 +23,7 @@ class TestMappers:
 
     @staticmethod
     def _unwrap_results(results):
-        return list([r.raw() for r in results])
+        return [r.raw() for r in results]
 
     def test_record_combining(self):
         mapper = RecordCombiningMapper()
