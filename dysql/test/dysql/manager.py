@@ -47,7 +47,7 @@ class TestDBManager:
 
     @staticmethod
     def _is_running_in_docker():
-        with open('/proc/1/cgroup', 'rt') as fobj:
+        with open('/proc/1/cgroup', 'rt', encoding='utf8') as fobj:
             contents = fobj.read()
             for marker in ('docker', 'kubepod', 'lxc'):
                 if marker in contents:

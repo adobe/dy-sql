@@ -192,6 +192,7 @@ class TestSqlUpdateDecorator:
         self._expect_args_list(execute_call.call_args_list[0], "INSERT something")
 
     def test_execute_query_values_not_given(self, mock_engine):
+        # pylint: disable=unused-argument
         self._update_something_no_params()
 
     def test_execute_multi_yield(self, mock_connect):
