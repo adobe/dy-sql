@@ -62,7 +62,7 @@ The basic structure is to decorate a method that returns a query string and its
 * yield one or more QueryData object that possibly contains queryparams and or templateparams
 
 DbMapResult
-~~~~~~~~~~
+~~~~~~~~~~~
 This wraps and returns the results of a query making it easier to access the data
 you put into it for example if you make the query "SELECT id, name FROM table",
 it would return a list of DbMapResult objects that contain fields for each of

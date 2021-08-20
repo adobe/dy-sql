@@ -13,6 +13,7 @@ setup(
     license='MIT',
     description='Dynamically runs SQL queries and executions.',
     long_description=long_description,
+    long_description_content_type='text/x-rst',
     author='Adobe',
     author_email='noreply@adobe.com',
     url='https://github.com/adobe/dy-sql',
