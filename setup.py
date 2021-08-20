@@ -2,16 +2,20 @@ from os.path import join, dirname
 from setuptools import setup, find_packages
 
 
-version = open(join(dirname(__file__), 'dysql/VERSION')).read().strip()
+with open(join(dirname(__file__), 'dysql/VERSION')) as fobj:
+    version = fobj.read().strip()
+with open(join(dirname(__file__), 'README.rst')) as fobj:
+    long_description = fobj.read().strip()
 
 setup(
     name='dy-sql',
     version=version,
     license='MIT',
     description='Dynamically runs SQL queries and executions.',
+    long_description=long_description,
     author='Adobe',
     author_email='noreply@adobe.com',
-    url='https://github.com/adobe/dysql',
+    url='https://github.com/adobe/dy-sql',
     platforms=['Any'],
     packages=find_packages(exclude=('*test*',)),
     zip_safe=False,
