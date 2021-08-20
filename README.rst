@@ -13,6 +13,13 @@ This is designed to be done with minimal setup and coding. You need to specify
 the database connection parameters and annotate any SQL queries/updates you have with the
 decorator that fits your needs.
 
+Installation
+============
+
+.. code-block::
+
+    pip install dy-sql
+
 Component Breakdown
 ===================
 * **set_database_parameters** - this function needs to be used to set the database parameters so when a decorator function is called, it can initialize a connection pool to a correct database.
