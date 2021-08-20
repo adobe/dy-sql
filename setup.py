@@ -21,7 +21,7 @@ setup(
     packages=find_packages(exclude=('*test*',)),
     zip_safe=False,
     install_requires=(
-        'sqlalchemy>=1.3',
+        'sqlalchemy>=1.4',
     ),
     classifiers=[
         'Development Status :: 4 - Beta',

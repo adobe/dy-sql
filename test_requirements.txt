@@ -1,5 +1,5 @@
 pytest==6.2.4
-pytest-randomly==3.10.0
+pytest-randomly==3.10.1
 pytest-cov==2.12.1
 pytest-pylint==0.18.0
 pylintfileheader==0.3.0
