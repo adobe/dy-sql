@@ -12,6 +12,11 @@ workflows:
           tags:
             only: /.*/
           # Branches are automatically included
+    # Only runs on branches, not on tags
+    - pypi-test:
+        requires:
+        - package
+    # Only runs on tags, not on branches
     - pypi:
         requires:
         - package
@@ -39,6 +44,20 @@ jobs:
     - run:
         name: Run tests
         command: pytest --pylint --junitxml=test-reports/test-results.xml
+  pypi-test:
+    docker:
+    - image: cimg/python:3.6
+    steps:
+    - checkout
+    - python/install-packages:
+        pkg-manager: pip
+    - run:
+        name: Deploy to pypi
+        command: |
+          pip install -U pip
+          python setup.py sdist bdist_wheel
+          pip install twine
+          twine check dist/*
   pypi:
     docker:
     - image: cimg/python:3.6
@@ -52,4 +71,4 @@ jobs:
           pip install -U pip
           python setup.py sdist bdist_wheel
           pip install twine
-          twine upload -u "__token__" dist/*
+          twine upload --verbose -u "__token__" dist/*
