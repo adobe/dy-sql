@@ -1,0 +1,27 @@
+version: 2.1
+
+orbs:
+  python: circleci/python@1.2
+
+workflows:
+  package:
+    jobs:
+    - package
+
+jobs:
+  package:
+    docker:
+    - image: cimg/python:3.6
+    steps:
+    - checkout
+    - python/install-packages:
+        pkg-manager: pip
+    - python/install-packages:
+        pkg-manager: pip
+        pip-dependency-file: test_requirements.txt
+    - run:
+        name: Clear out test reports
+        command: rm -rf test-reports
+    - run:
+        name: Run tests
+        command: pytest --pylint --junitxml=test-reports/test-results.xml
