@@ -52,7 +52,7 @@ jobs:
     - python/install-packages:
         pkg-manager: pip
     - run:
-        name: Deploy to pypi
+        name: Verify dist with twine
         command: |
           pip install -U pip
           python setup.py sdist bdist_wheel
@@ -71,4 +71,5 @@ jobs:
           pip install -U pip
           python setup.py sdist bdist_wheel
           pip install twine
-          twine upload --verbose -u "__token__" dist/*
+          twine check dist/*
+          twine upload -u "__token__" dist/*
