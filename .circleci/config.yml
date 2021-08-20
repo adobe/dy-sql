@@ -4,7 +4,7 @@ orbs:
   python: circleci/python@1.2
 
 workflows:
-  package:
+  build:
     jobs:
     - package:
         # Need this to force CircleCI to build on tags since they are ignored by default
