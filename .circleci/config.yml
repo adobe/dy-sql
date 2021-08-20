@@ -6,7 +6,21 @@ orbs:
 workflows:
   package:
     jobs:
-    - package
+    - package:
+        # Need this to force CircleCI to build on tags since they are ignored by default
+        filters:
+          tags:
+            only: /.*/
+          # Branches are automatically included
+    - pypi:
+        requires:
+        - package
+        filters:
+          tags:
+            only: /.*/
+          # Only publish to pypi on tags, so ignore branches
+          branches:
+            ignore: /.*/
 
 jobs:
   package:
@@ -25,3 +39,16 @@ jobs:
     - run:
         name: Run tests
         command: pytest --pylint --junitxml=test-reports/test-results.xml
+  pypi:
+    docker:
+    - image: cimg/python:3.6
+    steps:
+    - checkout
+    - python/install-packages:
+        pkg-manager: pip
+    - run:
+        name: Deploy to pypi
+        command: |
+          python setup.py sdist bdist_wheel
+          pip install twine
+          twine upload -u "__token__" dist/*
