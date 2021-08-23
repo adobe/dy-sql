@@ -6,20 +6,36 @@ orbs:
 workflows:
   build:
     jobs:
-    - package:
+    # Define a job for each python version
+    - package36:
+        python_version: 3.6.14
         # Need this to force CircleCI to build on tags since they are ignored by default
         filters:
           tags:
             only: /.*/
           # Branches are automatically included
+    - package37:
+        python_version: 3.7.11
+        filters:
+          tags:
+            only: /.*/
+    - package38:
+        python_version: 3.8.11
+        filters:
+          tags:
+            only: /.*/
     # Only runs on branches, not on tags
     - pypi-test:
         requires:
-        - package
+        - package36
+        - package37
+        - package38
     # Only runs on tags, not on branches
     - pypi:
         requires:
-        - package
+        - package36
+        - package37
+        - package38
         filters:
           tags:
             only: /.*/
@@ -29,17 +45,24 @@ workflows:
 
 jobs:
   package:
+    parameters:
+      python_version:
+        type: string
     docker:
-    - image: cimg/python:3.8
+    - image: cimg/python:<< parameters.python_version >>
     steps:
     - checkout
     - run: pyenv versions
+    - python/install-packages:
+        pkg-manager: pip
+    - python/install-packages:
+        pkg-manager: pip
+        pip-dependency-file: test_requirements.txt
     - run:
-        name: Install pyenv versions
-        command: pyenv install 3.6.8 && pyenv install 3.7.2
-    - run:
-        name: Run tox
-        command: tox
+        name: Run tests
+        command: pytest --pylint --junitxml=test-reports/test-results.xml
+    - store_test_results:
+        path: test-reports
   pypi-test:
     docker:
     - image: cimg/python:3.6
