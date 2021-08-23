@@ -18,10 +18,12 @@ workflows:
           # Branches are automatically included
     # Only runs on branches, not on tags
     - pypi-test:
+        python_version: "3.7.11"
         requires:
         - package
     # Only runs on tags, not on branches
     - pypi:
+        python_version: "3.7.11"
         requires:
         - package
         filters:
@@ -55,10 +57,16 @@ jobs:
     - store_test_results:
         path: test-reports
   pypi-test:
+    parameters:
+      python_version:
+        type: string
     docker:
-    - image: cimg/python:3.6
+    - image: cimg/python:<< parameters.python_version >>
     steps:
     - checkout
+    - run:
+        name: Override .python-version
+        command: echo "<< parameters.python_version >>" > .python-version
     - python/install-packages:
         pkg-manager: pip
     - run:
@@ -69,10 +77,16 @@ jobs:
           pip install twine
           twine check dist/*
   pypi:
+    parameters:
+      python_version:
+        type: string
     docker:
-    - image: cimg/python:3.6
+    - image: cimg/python:<< parameters.python_version >>
     steps:
     - checkout
+    - run:
+        name: Override .python-version
+        command: echo "<< parameters.python_version >>" > .python-version
     - python/install-packages:
         pkg-manager: pip
     - run:
