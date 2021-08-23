@@ -161,7 +161,12 @@ class QueryData:
     to still have the ability to have query parameters that get parameterized on the query.
     """
 
-    def __init__(self, query, query_params=None, template_params=None):
+    def __init__(
+            self,
+            query: str,
+            query_params: dict = None,
+            template_params: dict = None,
+    ):
         """
         Constructor.
         :param query: the SQL query
@@ -241,7 +246,7 @@ def __validate_query_and_params(data: QueryData) -> None:
 
 def get_query_data(data: QueryData) -> Tuple[str, dict]:
     """
-    Retrieves the query, parameters, and database from a QueryData object.
+    Retrieves the query and parameters from a QueryData object.
     :param data: the query data object
     :return: a tuple of the query string and the params
     """

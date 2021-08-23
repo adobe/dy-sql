@@ -10,8 +10,10 @@ from unittest.mock import Mock
 import pytest
 
 from dysql import sqlexists, QueryData
-from dysql.test.dysql import setup_mock_engine
+from dysql.test.dysql import mock_create_engine, setup_mock_engine
 
+
+_ = mock_create_engine
 
 TRUE_QUERY = 'SELECT 1 from table'
 TRUE_QUERY_PARAMS = 'SELECT 1 from table where key=:key'
@@ -29,8 +31,8 @@ EXISTS_QUERIES = {
 
 
 @pytest.fixture(autouse=True)
-def mock_engine_fixture():
-    mock_engine = setup_mock_engine()
+def mock_engine_fixture(mock_create_engine):
+    mock_engine = setup_mock_engine(mock_create_engine)
     mock_engine.connect.return_value.execution_options.return_value.execute.side_effect = \
         _check_query_and_return_result
     mock_engine.connect().execution_options().__enter__ = Mock()

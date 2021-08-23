@@ -9,12 +9,15 @@ import pytest
 
 import dysql
 from dysql import QueryData, sqlupdate, QueryDataError
-from dysql.test.dysql import _verify_query, _verify_query_args, setup_mock_engine
+from dysql.test.dysql import _verify_query, _verify_query_args, mock_create_engine, setup_mock_engine
+
+
+_ = mock_create_engine
 
 
 @pytest.fixture(name="mock_engine", autouse=True)
-def mock_engine_fixture():
-    mock_engine = setup_mock_engine()
+def mock_engine_fixture(mock_create_engine):
+    mock_engine = setup_mock_engine(mock_create_engine)
     mock_engine.connect().execution_options().execute.side_effect = lambda x, y: []
     return mock_engine
 

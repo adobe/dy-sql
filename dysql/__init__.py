@@ -19,9 +19,9 @@ from .mappers import (
 )
 from .query_utils import QueryData, QueryDataError, get_query_data
 from .connections import (
-    set_database_parameters,
     sqlexists,
     sqlquery,
     sqlupdate,
-    DBNotPreparedError,
 )
+from .databases import reset_current_database, set_current_database, set_default_connection_parameters
+from .exceptions import DBNotPreparedError
