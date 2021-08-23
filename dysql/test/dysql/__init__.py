@@ -6,22 +6,33 @@ NOTICE: Adobe permits you to use, modify, and distribute this file in accordance
 with the terms of the Adobe license agreement accompanying it.
 """
 from unittest.mock import Mock, patch
+import pytest
 
-from dysql import set_database_parameters
+from dysql import set_default_connection_parameters, databases
 
 
-def setup_mock_engine():
+@pytest.fixture
+def mock_create_engine():
+    create_mock = patch('dysql.databases.sqlalchemy.create_engine')
+    try:
+        yield create_mock.start()
+    finally:
+        create_mock.stop()
+
+
+def setup_mock_engine(mock_create_engine):
     """
-    build up the basics of a mock engin for the database
+    build up the basics of a mock engine for the database
     :return: mocked engine for use and manipulation in testing
     """
     mock_engine = Mock()
     mock_engine.connect().execution_options().__enter__ = Mock()
     mock_engine.connect().execution_options().__exit__ = Mock()
-    set_database_parameters('fake', 'user', 'password', 'test')
+    set_default_connection_parameters('fake', 'user', 'password', 'test')
 
-    create_mock = patch('dysql.connections.sqlalchemy.create_engine').start()
-    create_mock.return_value = mock_engine
+    # Clear out the databases before attempting to mock anything
+    databases.DatabaseContainerSingleton().clear()
+    mock_create_engine.return_value = mock_engine
     return mock_engine
 
 

@@ -8,9 +8,11 @@ with the terms of the Adobe license agreement accompanying it.
 import logging
 import functools
 import inspect
+from typing import Type, Union
 
 import sqlalchemy
 
+from .databases import DatabaseContainerSingleton
 from .mappers import (
     BaseMapper,
     DbMapResult,
@@ -21,67 +23,11 @@ from .query_utils import get_query_data
 
 logger = logging.getLogger('database')
 
-DEFAULT_DATABASE = None
-DATABASES: dict = {}
 
-
-def set_default_database(database_name):
-    # pylint: disable=global-statement
-    global DEFAULT_DATABASE
-    DEFAULT_DATABASE = database_name
-
-
-def set_database_parameters(
-        host: str,
-        user: str,
-        password: str,
-        database: str,
-        port: int = 3306,
-        pool_size: int = 10,
-        pool_recycle: int = 3600,
-        echo_queries: bool = False,
-):  # pylint: disable=too-many-arguments
-    """
-    Initializes the parameters to use when connecting to the database. This is a subset of the parameters
-    used by sqlalchemy.
-
-    :param user: user to connect to the database with
-    :param password: password for given user
-    :param host: the db host to try to connect to
-    :param database: database to connect to
-    :param port: the port to connect to (default 3306)
-    :param pool_size: number of connections to maintain in the connection pool (default 10)
-    :param pool_recycle: amount of time to wait between resetting the connections
-                         in the pool (default 3600)
-    :param echo_queries: this tells sqlalchemy to print the queries when set to True (default false)
-    :exception DBNotPrepareError: happens when required parameters are missing
-    """
-    # pylint: disable=global-statement
-    global DEFAULT_DATABASE
-    DEFAULT_DATABASE = database
-    required_param_missing = 'Database parameter "{}" is not set or empty and is required'
-    if not host:
-        raise DBNotPreparedError(required_param_missing.format('host'))
-    if not user:
-        raise DBNotPreparedError(required_param_missing.format('user'))
-    if not password:
-        raise DBNotPreparedError(required_param_missing.format('password'))
-    if not database:
-        raise DBNotPreparedError(required_param_missing.format('database'))
-
-    DATABASES[database] = {
-        'parameters': {
-            'user': user,
-            'password': password,
-            'host': host,
-            'port': port,
-            'database': database,
-            'pool_recycle': pool_recycle,
-            'pool_size': pool_size,
-            'echo_queries': echo_queries,
-        },
-        'engine': None
-    }
+# Must be after the database classes are defined
+_DEFAULT_CONNECTION_PARAMS = {}
+# Always initialize a database container, it is never set again
+_DATABASE_CONTAINER = DatabaseContainerSingleton()
 
 
 class _ConnectionManager:
@@ -91,13 +37,9 @@ class _ConnectionManager:
     def __init__(self, func, isolation_level, transaction, *args, **kwargs):
         self._transaction = None
 
-        try:
-            self._init_database()
-        except DBNotPreparedError as dbe:
-            raise dbe
-
-        engine: sqlalchemy.engine.Engine = DATABASES[DEFAULT_DATABASE]['engine']
-        self._connection = engine.connect().execution_options(isolation_level=isolation_level)
+        self._connection = _DATABASE_CONTAINER.current_database.engine.connect().execution_options(
+            isolation_level=isolation_level
+        )
         if transaction:
             self._transaction = self._connection.begin()
 
@@ -119,31 +61,6 @@ class _ConnectionManager:
         # Close the connection
         self._connection.__exit__(exc_type, exc_val, exc_tb)
 
-    @staticmethod
-    def _init_database() -> None:
-        current_database = DATABASES.get(DEFAULT_DATABASE, {})
-        database_parameters = current_database.get('parameters', {})
-
-        if not database_parameters:
-            raise DBNotPreparedError(
-                'Unable to connect to a database, set_database_parameters must first be called')
-
-        if current_database.get('engine') is None:
-            user = database_parameters.get('user')
-            password = database_parameters.get('password')
-            host = database_parameters.get('host')
-            port = database_parameters.get('port')
-            database = database_parameters.get('database')
-            url = f'mysql+mysqlconnector://{user}:{password}@{host}:{port}/{database}?charset=utf8'
-
-            current_database['engine'] = sqlalchemy.create_engine(
-                url,
-                pool_recycle=database_parameters.get('pool_recycle'),
-                pool_size=database_parameters.get('pool_size'),
-                echo=database_parameters.get('echo_queries'),
-                pool_pre_ping=True,
-            )
-
     def execute_query(self, query, params=None) -> sqlalchemy.engine.CursorResult:
         """
         Executes the query through the connection with optional parameters.
@@ -164,7 +81,7 @@ class _ConnectionManager:
         return self._connection.execute(sqlalchemy.text(query), params)
 
 
-def sqlquery(mapper: BaseMapper = None, isolation_level: str = 'READ_COMMITTED'):
+def sqlquery(mapper: Union[BaseMapper, Type[BaseMapper]] = None, isolation_level: str = 'READ_COMMITTED'):
     """
     query allows for defining a parameterize select query that is then executed
     :param mapper: a class extending from or an instance of BaseMapper, defaults to
@@ -268,7 +185,7 @@ def sqlupdate(isolation_level='READ_COMMITTED', disable_foreign_key_checks=False
         foreign_key_checks once all the data is applied. Foreign key checks are there to provide
         our database with integrety
 
-        That being said, there are times when you are syncronizing data from another source that
+        That being said, there are times when you are synchronizing data from another source that
         you have data that may be difficult to sort ahead of time in order to avoid failing foreign
         key constraints this flag helps to deal with cases where the logic may be unnecessarily
         complex.
@@ -324,9 +241,3 @@ def sqlupdate(isolation_level='READ_COMMITTED', disable_foreign_key_checks=False
         return handle_query
 
     return update_wrapper
-
-
-class DBNotPreparedError(Exception):
-    """
-    DB Not Prepared Error
-    """

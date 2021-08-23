@@ -10,7 +10,7 @@ import os
 import subprocess
 from time import sleep
 
-from dysql import set_database_parameters, sqlquery, QueryData, CountMapper
+from dysql import set_default_connection_parameters, sqlquery, QueryData, CountMapper
 
 LOGGER = logging.getLogger(__name__)
 
@@ -59,7 +59,7 @@ class TestDBManager:
         # Set the host based on whether we are in buildrunner or not (to test locally)
 
         self._create_test_db()
-        set_database_parameters(
+        set_default_connection_parameters(
             self.host,
             # because the way the basic mariadb container is set up, its easy for us to test this way
             os.getenv('MARIA_USERNAME', 'root'),

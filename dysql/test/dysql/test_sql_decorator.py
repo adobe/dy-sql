@@ -9,7 +9,10 @@ import pytest
 
 from dysql import sqlupdate, sqlquery, DbMapResult, CountMapper, SingleRowMapper, \
     QueryData, QueryDataError
-from dysql.test.dysql import setup_mock_engine
+from dysql.test.dysql import mock_create_engine, setup_mock_engine
+
+
+_ = mock_create_engine
 
 
 class TestSqlSelectDecorator:
@@ -39,8 +42,8 @@ class TestSqlSelectDecorator:
 
     @staticmethod
     @pytest.fixture
-    def mock_engine(mock_results):
-        mock_engine = setup_mock_engine()
+    def mock_engine(mock_results, mock_create_engine):
+        mock_engine = setup_mock_engine(mock_create_engine)
         mock_engine.connect.return_value.execution_options.return_value.execute.return_value = mock_results
         return mock_engine
 
@@ -139,8 +142,8 @@ class TestSqlUpdateDecorator:
 
     @staticmethod
     @pytest.fixture
-    def mock_engine():
-        return setup_mock_engine()
+    def mock_engine(mock_create_engine):
+        return setup_mock_engine(mock_create_engine)
 
     @staticmethod
     @pytest.fixture
