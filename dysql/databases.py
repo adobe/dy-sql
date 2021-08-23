@@ -1,3 +1,10 @@
+"""
+Copyright 2021 Adobe
+All Rights Reserved.
+
+NOTICE: Adobe permits you to use, modify, and distribute this file in accordance
+with the terms of the Adobe license agreement accompanying it.
+"""
 
 import logging
 import sys
@@ -14,9 +21,9 @@ _DEFAULT_CONNECTION_PARAMS = {}
 
 try:
     import contextvars
-    current_database_var = contextvars.ContextVar("dysql_current_database", default='')
+    CURRENT_DATABASE_VAR = contextvars.ContextVar("dysql_current_database", default='')
 except ImportError:
-    current_database_var = None
+    CURRENT_DATABASE_VAR = None
 
 
 def set_current_database(database: str) -> None:
@@ -25,11 +32,11 @@ def set_current_database(database: str) -> None:
     contextvars internally to set the name for the current async context.
     :param database: the database name to use for this async context
     """
-    if not current_database_var:
+    if not CURRENT_DATABASE_VAR:
         raise DBNotPreparedError(
             f'Cannot set the current database on Python "{sys.version}", please upgrade your Python version'
         )
-    current_database_var.set(database)
+    CURRENT_DATABASE_VAR.set(database)
     logger.debug(f'Set current database to {database}')
 
 
@@ -47,8 +54,8 @@ def _get_current_database() -> str:
     :return: The current database name
     """
     database: Optional[str] = None
-    if current_database_var:
-        database = current_database_var.get()
+    if CURRENT_DATABASE_VAR:
+        database = CURRENT_DATABASE_VAR.get()
     if not database:
         database = _DEFAULT_CONNECTION_PARAMS.get('database')
     return database
@@ -68,7 +75,7 @@ def set_default_connection_parameters(
         pool_size: int = 10,
         pool_recycle: int = 3600,
         echo_queries: bool = False,
-):  # pylint: disable=too-many-arguments
+):  # pylint: disable=too-many-arguments,unused-argument
     """
     Initializes the parameters to use when connecting to the database. This is a subset of the parameters
     used by sqlalchemy. These may be overridden by parameters provided in the QueryData, hence the "default".
@@ -93,6 +100,8 @@ def set_default_connection_parameters(
 
 
 class Database:
+    # pylint: disable=too-few-public-methods
+
     def __init__(self, database: Optional[str]) -> None:
         self.database = database
         # Engine is lazy-initialized
@@ -152,9 +161,9 @@ class DatabaseContainerSingleton(DatabaseContainer):
     the __new__ method.
     """
     def __new__(cls, *args, **kwargs) -> 'DatabaseContainer':
-        it = cls.__dict__.get("__it__")
-        if it is not None:
-            return it
-        cls.__it__ = it = DatabaseContainer.__new__(cls)
-        it.__init__(*args, **kwargs)
-        return it
+        instance = cls.__dict__.get("__instance__")
+        if instance is not None:
+            return instance
+        cls.__instance__ = instance = DatabaseContainer.__new__(cls)
+        instance.__init__(*args, **kwargs)
+        return instance

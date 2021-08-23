@@ -14,10 +14,10 @@ import pytest
 
 import dysql.connections
 from dysql import sqlquery, DBNotPreparedError, set_default_connection_parameters, QueryData
-from dysql.test.dysql import mock_create_engine, setup_mock_engine
+from dysql.test.dysql import mock_create_engine_fixture, setup_mock_engine
 
 
-_ = mock_create_engine
+_ = mock_create_engine_fixture
 
 
 class TestDatabaseInitialization:

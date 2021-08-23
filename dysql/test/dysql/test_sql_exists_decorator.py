@@ -10,10 +10,10 @@ from unittest.mock import Mock
 import pytest
 
 from dysql import sqlexists, QueryData
-from dysql.test.dysql import mock_create_engine, setup_mock_engine
+from dysql.test.dysql import mock_create_engine_fixture, setup_mock_engine
 
 
-_ = mock_create_engine
+_ = mock_create_engine_fixture
 
 TRUE_QUERY = 'SELECT 1 from table'
 TRUE_QUERY_PARAMS = 'SELECT 1 from table where key=:key'

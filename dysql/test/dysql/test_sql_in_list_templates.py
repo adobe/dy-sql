@@ -11,10 +11,10 @@ import pytest
 import dysql
 from dysql import QueryData, sqlquery
 from dysql.test.dysql import \
-    _verify_query, _verify_query_args, _verify_query_params, mock_create_engine, setup_mock_engine
+    _verify_query, _verify_query_args, _verify_query_params, mock_create_engine_fixture, setup_mock_engine
 
 
-_ = mock_create_engine
+_ = mock_create_engine_fixture
 
 
 @pytest.fixture(name="mock_engine", autouse=True)

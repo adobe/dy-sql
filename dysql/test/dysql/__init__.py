@@ -11,8 +11,8 @@ import pytest
 from dysql import set_default_connection_parameters, databases
 
 
-@pytest.fixture
-def mock_create_engine():
+@pytest.fixture(name='mock_create_engine')
+def mock_create_engine_fixture():
     create_mock = patch('dysql.databases.sqlalchemy.create_engine')
     try:
         yield create_mock.start()
