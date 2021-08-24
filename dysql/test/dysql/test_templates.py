@@ -7,10 +7,10 @@ with the terms of the Adobe license agreement accompanying it.
 """
 import pytest
 
-from dysql.query_utils import Templates, ListTemplateException
+from dysql.query_utils import TemplateGenerators, ListTemplateException
 
 
-class TestSqlTemplates:
+class TestTemplatesGenerators:
     """
     Test we get templates back from Templates
     """
@@ -25,17 +25,22 @@ class TestSqlTemplates:
         'table.column_a NOT IN ( :table_column_a_0, :table_column_a_1, :table_column_a_2, :table_column_a_3 )'
 
     test_query_data = ('template_function, column_name,column_values,expected_query', [
-        (Templates.in_column, 'column_a', number_values, query),
-        (Templates.in_column, 'table.column_a', number_values, query_with_table),
-        (Templates.in_column, 'column_a', string_values, query),
-        (Templates.in_column, 'table.column_a', string_values, query_with_table),
-        (Templates.in_column, 'column_a', [], '1 <> 1'),
-        (Templates.not_in_column, 'column_a', number_values, not_query),
-        (Templates.not_in_column, 'table.column_a', number_values, not_query_with_table),
-        (Templates.not_in_column, 'column_a', string_values, not_query),
-        (Templates.not_in_column, 'table.column_a', string_values, not_query_with_table),
-        (Templates.not_in_column, 'column_a', [], '1 = 1'),
-        (Templates.values, 'someid', insert_values, "VALUES ( :someid_0_0, :someid_0_1 ), ( :someid_1_0, :someid_1_1 )")
+        (TemplateGenerators.in_column, 'column_a', number_values, query),
+        (TemplateGenerators.in_column, 'table.column_a', number_values, query_with_table),
+        (TemplateGenerators.in_column, 'column_a', string_values, query),
+        (TemplateGenerators.in_column, 'table.column_a', string_values, query_with_table),
+        (TemplateGenerators.in_column, 'column_a', [], '1 <> 1'),
+        (TemplateGenerators.not_in_column, 'column_a', number_values, not_query),
+        (TemplateGenerators.not_in_column, 'table.column_a', number_values, not_query_with_table),
+        (TemplateGenerators.not_in_column, 'column_a', string_values, not_query),
+        (TemplateGenerators.not_in_column, 'table.column_a', string_values, not_query_with_table),
+        (TemplateGenerators.not_in_column, 'column_a', [], '1 = 1'),
+        (
+            TemplateGenerators.values,
+            'someid',
+            insert_values,
+            "VALUES ( :someid_0_0, :someid_0_1 ), ( :someid_1_0, :someid_1_1 )",
+        )
     ])
 
     parameter_numbers = {
@@ -63,17 +68,17 @@ class TestSqlTemplates:
         'table_column_a_3': string_values[3]
     }
     test_params_data = ('template_function, column_name,column_values,expected_params', [
-        (Templates.in_column, 'column_a', number_values, parameter_numbers),
-        (Templates.in_column, 'table.column_a', number_values, with_table_parameter_numbers),
-        (Templates.in_column, 'column_a', string_values, parameter_strings),
-        (Templates.in_column, 'table.column_a', string_values, with_table_parameter_strings),
-        (Templates.in_column, 'column_a', [], None),
-        (Templates.not_in_column, 'column_a', number_values, parameter_numbers),
-        (Templates.not_in_column, 'table.column_a', number_values, with_table_parameter_numbers),
-        (Templates.not_in_column, 'column_a', string_values, parameter_strings),
-        (Templates.not_in_column, 'table.column_a', string_values, with_table_parameter_strings),
-        (Templates.not_in_column, 'column_a', [], None),
-        (Templates.values, 'someid', insert_values, {
+        (TemplateGenerators.in_column, 'column_a', number_values, parameter_numbers),
+        (TemplateGenerators.in_column, 'table.column_a', number_values, with_table_parameter_numbers),
+        (TemplateGenerators.in_column, 'column_a', string_values, parameter_strings),
+        (TemplateGenerators.in_column, 'table.column_a', string_values, with_table_parameter_strings),
+        (TemplateGenerators.in_column, 'column_a', [], None),
+        (TemplateGenerators.not_in_column, 'column_a', number_values, parameter_numbers),
+        (TemplateGenerators.not_in_column, 'table.column_a', number_values, with_table_parameter_numbers),
+        (TemplateGenerators.not_in_column, 'column_a', string_values, parameter_strings),
+        (TemplateGenerators.not_in_column, 'table.column_a', string_values, with_table_parameter_strings),
+        (TemplateGenerators.not_in_column, 'column_a', [], None),
+        (TemplateGenerators.values, 'someid', insert_values, {
             'someid_0_0': insert_values[0][0],
             'someid_0_1': insert_values[0][1],
             'someid_1_0': insert_values[1][0],
@@ -97,4 +102,4 @@ class TestSqlTemplates:
     @staticmethod
     def test_insert_none():
         with pytest.raises(ListTemplateException):
-            Templates.values('someid', None)
+            TemplateGenerators.values('someid', None)
