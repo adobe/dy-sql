@@ -36,6 +36,7 @@ Component Breakdown
 * **@sqlinsert** - decorator for any queries that can change data in the database, this can take a set of
   values and yield multiple operations back for insertions or updates inside of a transaction
 * **@sqlexists** - decorator for a simplified select query that will return true if a record exists and false otherwise
+* **XDbTestManager** - test manager classes that may be used for testing purposes
 
 Database Preparation
 ====================
@@ -312,3 +313,19 @@ You can write queries that combine ``template_params`` and ``query_params`` as w
                         template_params={'in__item_id': item_id_list},
                         query_params={'name': name})
 
+Testing with Managers
+=====================
+
+During testing, it may be useful to hook up a real database to the tests. However, this can be difficult to maintain
+schema and isolate databases during testing. Database test managers exist for this reason. Usage is very simple with
+pytest.
+
+.. code-block:: python
+
+    @pytest.fixture(scope='module', autouse=True)
+    def setup_db(self):
+        # Pass in the database name and any optional params
+        with MariaDbTestManager(f'testdb_{self.__class__.__name__.lower()}'):
+            yield
+
+The Maria database test manager is shown used above, but future implementations may be added for other SQL backends.

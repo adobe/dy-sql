@@ -12,14 +12,17 @@ import subprocess
 from time import sleep
 from typing import Optional
 
-from dysql import set_default_connection_parameters, sqlquery, QueryData, CountMapper
+from .connections import sqlquery
+from .databases import set_default_connection_parameters
+from .mappers import CountMapper
+from .query_utils import QueryData
 
 LOGGER = logging.getLogger(__name__)
 
 
-class TestDbManagerBase(abc.ABC):
+class DbTestManagerBase(abc.ABC):
     """
-    Base class for all TestDbManagers. See individual implementations for usage details.
+    Base class for all test managers. See individual implementations for usage details.
     """
     # pylint: disable=too-many-instance-attributes
 
@@ -139,17 +142,17 @@ class TestDbManagerBase(abc.ABC):
             raise
 
 
-class TestMariaDbManager(TestDbManagerBase):
+class MariaDbTestManager(DbTestManagerBase):
     """
-    TestMariaDbManager helps to copy and create a schema that can be used for testing in better isolation without
-    having to do anything manually outside the tests. This implementation works specifically for Maria/MySQL databases.
+    May be used in testing to copy and create a database and schema. This class works specifically with
+    Maria/MySQL databases.
 
     Example:
 
     @pytest.fixture(scope='module', autouse=True)
     def setup_db(self):
         # Pass in the database name and any optional params
-        with TestMariaDbManager(f'testdb_{self.__class__.__name__.lower()}'):
+        with MariaDbTestManager(f'testdb_{self.__class__.__name__.lower()}'):
             yield
     """
     # pylint: disable=too-few-public-methods
