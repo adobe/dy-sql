@@ -10,7 +10,7 @@ from unittest.mock import Mock
 import pytest
 
 from dysql import sqlexists, QueryData
-from dysql.test.dysql import mock_create_engine_fixture, setup_mock_engine
+from dysql.test import mock_create_engine_fixture, setup_mock_engine
 
 
 _ = mock_create_engine_fixture

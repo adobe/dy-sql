@@ -9,7 +9,7 @@ import pytest
 
 from dysql import sqlupdate, sqlquery, DbMapResult, CountMapper, SingleRowMapper, \
     QueryData, QueryDataError
-from dysql.test.dysql import mock_create_engine_fixture, setup_mock_engine
+from dysql.test import mock_create_engine_fixture, setup_mock_engine
 
 
 _ = mock_create_engine_fixture

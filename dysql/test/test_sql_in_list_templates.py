@@ -10,7 +10,7 @@ import pytest
 
 import dysql
 from dysql import QueryData, sqlquery
-from dysql.test.dysql import \
+from dysql.test import \
     _verify_query, _verify_query_args, _verify_query_params, mock_create_engine_fixture, setup_mock_engine
 
 
