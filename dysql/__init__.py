@@ -17,7 +17,7 @@ from .mappers import (
     CountMapper,
     KeyValueMapper,
 )
-from .query_utils import QueryData, QueryDataError, get_query_data
+from .query_utils import QueryData, QueryDataError, TemplateGenerators, get_query_data
 from .connections import (
     sqlexists,
     sqlquery,
