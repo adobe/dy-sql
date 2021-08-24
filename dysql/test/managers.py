@@ -21,6 +21,7 @@ class TestDbManagerBase(abc.ABC):
     """
     Base class for all TestDbManagers. See individual implementations for usage details.
     """
+    # pylint: disable=too-many-instance-attributes
 
     def __init__(
             self,
@@ -32,7 +33,7 @@ class TestDbManagerBase(abc.ABC):
             docker_container: Optional[str] = None,
             keep_db: bool = False,
             **connection_defaults,
-    ):
+    ):  # pylint: disable=too-many-arguments
         """
         Constructor, any unknown kwargs are passed directly to set_default_connection_parameters.
 
@@ -91,7 +92,6 @@ class TestDbManagerBase(abc.ABC):
         Must be overridden in implementing classes. Creates the test database from the self.schema_db_name
         database (if present) or an empty database desired.
         """
-        pass
 
     @abc.abstractmethod
     def _get_tables_count(self, db_name: str) -> int:
@@ -100,14 +100,12 @@ class TestDbManagerBase(abc.ABC):
         :param db_name: the database to retrieve the count for
         :return: the number of tables present in the database
         """
-        pass
 
     @abc.abstractmethod
     def _tear_down_test_db(self) -> None:
         """
         Must be overridden in implementing classes. Tears down the test database.
         """
-        pass
 
     def _wait_for_tables_exist(self) -> None:
         """
@@ -154,6 +152,7 @@ class TestMariaDbManager(TestDbManagerBase):
         with TestMariaDbManager(f'testdb_{self.__class__.__name__.lower()}'):
             yield
     """
+    # pylint: disable=too-few-public-methods
 
     def __init__(
             self,
@@ -162,7 +161,7 @@ class TestMariaDbManager(TestDbManagerBase):
             echo_queries: bool = False,
             keep_db: bool = False,
             pool_size=3,
-    ):
+    ):  # pylint: disable=too-many-arguments
         """
         :param db_name: the name you want for your test database
         :param schema_db_name: the name of the DB to duplicate schema from (using mysqldump)
