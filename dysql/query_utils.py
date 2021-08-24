@@ -20,7 +20,7 @@ from typing import Iterable, Optional, Tuple, Union
 LIST_TEMPLATE_REGEX = re.compile(r'(( +)?{(in|not_in|values)__([A-Za-z_]+\.)?([A-Za-z_]+)}( +)?)')
 
 
-class Templates:
+class TemplateGenerators:
     """
     Functions in this class help to return a tuple which contains the query template along with
     a dictionary of parameterized values for the query.
@@ -54,7 +54,7 @@ class Templates:
         key_name = name
         if legacy_key:
             key_name = legacy_key
-        keys, values = Templates._parameterize_list(key_name, values)
+        keys, values = TemplateGenerators._parameterize_list(key_name, values)
         return f'{name} IN {keys}', values
 
     @staticmethod
@@ -75,7 +75,7 @@ class Templates:
         key_name = name
         if legacy_key:
             key_name = legacy_key
-        keys, values = Templates._parameterize_list(key_name, values)
+        keys, values = TemplateGenerators._parameterize_list(key_name, values)
         return f'{name} NOT IN {keys}', values
 
     @staticmethod
@@ -96,7 +96,7 @@ class Templates:
         key_name = name
         if legacy_key:
             key_name = legacy_key
-        keys, values = Templates._parameterize_list(key_name, values)
+        keys, values = TemplateGenerators._parameterize_list(key_name, values)
         return f'VALUES {keys}', values
 
     @staticmethod
@@ -129,16 +129,15 @@ class Templates:
 
         for index, value in enumerate(values):
             if isinstance(value, tuple) or key.startswith('values'):
-                param_string, inner_param_values = Templates._parameterize_inner_list(
+                param_string, inner_param_values = TemplateGenerators._parameterize_inner_list(
                     '{}_{}'.format(key, str(index)), value
                 )
                 param_values.update(inner_param_values)
                 param_inner_keys.append(param_string)
             else:
-                return Templates._parameterize_inner_list(key, values)
+                return TemplateGenerators._parameterize_inner_list(key, values)
 
         return ', '.join(param_inner_keys), param_values
-
 
 
 class ListTemplateException(Exception):
@@ -260,7 +259,7 @@ def get_query_data(data: QueryData) -> Tuple[str, dict]:
 
     for key in validated_keys:
         list_template_key, column_name = tuple(key.split('__'))
-        template_to_use = Templates.get_template(list_template_key)
+        template_to_use = TemplateGenerators.get_template(list_template_key)
         template_query, param_dict = template_to_use(column_name, data.template_params[key], legacy_key=key)
         if param_dict:
             params.update(param_dict)
