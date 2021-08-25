@@ -61,11 +61,12 @@ class DbTestManagerBase(abc.ABC):
 
     @staticmethod
     def _is_running_in_docker():
-        with open('/proc/1/cgroup', 'rt', encoding='utf8') as fobj:
-            contents = fobj.read()
-            for marker in ('docker', 'kubepod', 'lxc'):
-                if marker in contents:
-                    return True
+        if os.path.exists('/proc/1/cgroup'):
+            with open('/proc/1/cgroup', 'rt', encoding='utf8') as fobj:
+                contents = fobj.read()
+                for marker in ('docker', 'kubepod', 'lxc'):
+                    if marker in contents:
+                        return True
         return False
 
     def __enter__(self):
@@ -129,7 +130,7 @@ class DbTestManagerBase(abc.ABC):
         :return: the completed process information
         """
         if not self.in_docker:
-            command = f"docker exec -d {self.docker_container} bash -c '{command}'"
+            command = f"docker exec {self.docker_container} bash -c '{command}'"
 
         try:
             LOGGER.debug(f"Executing : '{command}'")
