@@ -10,7 +10,7 @@ with the terms of the Adobe license agreement accompanying it.
 import abc
 import logging
 from collections import OrderedDict
-from typing import Any, Optional
+from typing import Any, Optional, Type
 
 import sqlalchemy
 
@@ -124,7 +124,7 @@ class RecordCombiningMapper(BaseMapper):
     unique ``id`` value.
     """
 
-    def __init__(self, record_mapper: Optional[DbMapResultBase] = DbMapResult):
+    def __init__(self, record_mapper: Optional[Type[DbMapResultBase]] = DbMapResult):
         self.record_mapper = record_mapper
 
     def map_records(self, records: sqlalchemy.engine.CursorResult) -> Any:
