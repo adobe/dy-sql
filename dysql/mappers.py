@@ -152,7 +152,7 @@ class SingleRowMapper(BaseMapper):
     Returns a single mapped result from one or more records. The first record is returned even if
     there are multiple records from the database.
     """
-    def __init__(self, record_mapper: Optional[DbMapResultBase] = DbMapResult):
+    def __init__(self, record_mapper: Optional[Type[DbMapResultBase]] = DbMapResult):
         self.record_mapper = record_mapper
 
     def map_records(self, records: sqlalchemy.engine.CursorResult) -> Any:
