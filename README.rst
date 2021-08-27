@@ -32,6 +32,7 @@ Component Breakdown
   contains query information
 * **DbMapResult** - base class that can be used when selecting data that helps to map the results of a
   query to an object in python
+* **DbMapResultModel** - pydantic version of ``DbMapResult`` that allows easy mapping to pydantic models
 * **@sqlquery** - decorator for select queries that can return a SQL result in a ``DbMapResult``
 * **@sqlinsert** - decorator for any queries that can change data in the database, this can take a set of
   values and yield multiple operations back for insertions or updates inside of a transaction
@@ -203,12 +204,10 @@ In this case, the ``_`` prefixed properties tell the model which fields should b
 multiple rows into a single object. For an example of how this works with database rows, see the
 ``test_pydantic_mappers.py`` file in the source repository.
 
-.. note::
-
-    Validation **does** occur the very first time ``map_record`` is called, but not on subsequent runs. Therefore if
-    you desire better validation for list, set, or dict fields, this must most likely be done outside of dysql/pydantic.
-    Additionally, lists, sets, and dicts will ignore null values from the database. Therefore you must provide default
-    values for these fields when used or else validation will fail.
+Note that validation **does** occur the very first time ``map_record`` is called, but not on subsequent runs. Therefore
+if you desire better validation for list, set, or dict fields, this must most likely be done outside of dysql/pydantic.
+Additionally, lists, sets, and dicts will ignore null values from the database. Therefore you must provide default
+values for these fields when used or else validation will fail.
 
 @sqlquery
 ~~~~~~~~~
