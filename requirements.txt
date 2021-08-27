@@ -1,3 +1,6 @@
 -e .
 
+# Used in development, and as an extra
+pydantic>=1.8.2,<2
+
 #bump2version is used for bumping versions, but not within the application itself
