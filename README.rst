@@ -151,6 +151,65 @@ such as a query for a 1-to-many relationship.
             for item_name in table_item.item_names:
                 print(f'table name {table_item.name} has item {item_name}')
 
+DbMapResultModel (pydantic)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If pydantic models are desired to be used, there is a record mapper available. Note that pydantic must be installed,
+which is available as an extra package:
+
+.. code-block::
+
+    pip install dy-sql[pydantic]
+
+This model attempts to make mapping records easier, but there are shortcomings of it in more complex cases.
+Most fields will "just work" as defined by the type annotations.
+
+.. code-block:: python
+
+    from dysql.pydantic_mappers import DbMapResultModel
+
+    class PydanticDbModel(DbMapResultModel):
+        id: int
+        field_str: str
+        field_int: int
+        field_bool: bool
+
+Mapping a record onto this class will automatically convert types as defined by the type annotations. No ``map_record``
+method needs to be defined since the pydantic model has everything necessary to map database fields.
+
+Lists, sets, and dicts (when using the RecordCombiningMapper) require additional configuration on the model class.
+
+.. code-block:: python
+
+    from dysql.pydantic_mappers import DbMapResultModel
+
+    class ComplexDbModel(DbMapResultModel):
+        # List fields (type does not matter)
+        _list_fields: Set[str] = ['list1']
+        # Set fields (type does not matter)
+        _set_fields: Set[str] = ['set1']
+        # Dictionary key fields as DB field name => model field name
+        _dict_key_fields: Dict[str, str] = {'key1': 'dict1', 'key2': 'dict2'}
+        # Dictionary value fields as model field name => DB field name (this is reversed from _dict_key_fields!)
+        _dict_value_mappings: Dict[str, str] = {'dict1': 'val1', 'dict2': 'val2'}
+
+        id: int = None
+        list1: List[str]
+        set1: Set[str] = set()
+        dict1: Dict[str, Any] = {}
+        dict2: Dict[str, int] = {}
+
+In this case, the ``_`` prefixed properties tell the model which fields should be treated differently when combining
+multiple rows into a single object. For an example of how this works with database rows, see the
+``test_pydantic_mappers.py`` file in the source repository.
+
+.. note::
+
+    Validation **does** occur the very first time ``map_record`` is called, but not on subsequent runs. Therefore if
+    you desire better validation for list, set, or dict fields, this must most likely be done outside of dysql/pydantic.
+    Additionally, lists, sets, and dicts will ignore null values from the database. Therefore you must provide default
+    values for these fields when used or else validation will fail.
+
 @sqlquery
 ~~~~~~~~~
 This is for making SQL ``select`` calls. An optional mapper may be specified to

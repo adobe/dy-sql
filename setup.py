@@ -23,6 +23,9 @@ setup(
     install_requires=(
         'sqlalchemy>=1.4',
     ),
+    extras_require={
+        'pydantic': ['pydantic>=1.8.2,<2'],
+    },
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
