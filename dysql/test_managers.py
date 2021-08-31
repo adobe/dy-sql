@@ -13,7 +13,7 @@ from time import sleep
 from typing import Optional
 
 from .connections import sqlquery
-from .databases import set_default_connection_parameters
+from .databases import is_set_current_database_supported, set_current_database, set_default_connection_parameters
 from .mappers import CountMapper
 from .query_utils import QueryData
 
@@ -81,6 +81,10 @@ class DbTestManagerBase(abc.ABC):
             self.db_name,
             **self.connection_defaults,
         )
+
+        # Set the database if supported by the python runtime
+        if is_set_current_database_supported():
+            set_current_database(self.db_name)
 
         if self.schema_db_name:
             self._wait_for_tables_exist()
