@@ -48,7 +48,10 @@ class TestSqlSelectDecorator:
         return mock_engine
 
     @staticmethod
-    def test_non_query_data_fails():
+    def test_non_query_data_fails(mock_create_engine):
+        # This argument forces the fixture setup
+        _ = mock_create_engine
+
         @sqlquery()
         def select_with_string():
             return "SELECT"

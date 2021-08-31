@@ -31,9 +31,16 @@ class TestDatabaseInitialization:
     def mock_engine(mock_create_engine):
         dysql.databases.DatabaseContainerSingleton().clear()
         dysql.databases._DEFAULT_CONNECTION_PARAMS.clear()
+
+        # Reset the database before the test
         if dysql.databases.is_set_current_database_supported():
             dysql.databases.reset_current_database()
-        return setup_mock_engine(mock_create_engine)
+
+        yield setup_mock_engine(mock_create_engine)
+
+        # Reset database after the test as well
+        if dysql.databases.is_set_current_database_supported():
+            dysql.databases.reset_current_database()
 
     def test_nothing_set(self):
         dysql.databases._DEFAULT_CONNECTION_PARAMS.clear()
