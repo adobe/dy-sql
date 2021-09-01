@@ -24,6 +24,8 @@ Component Breakdown
 ===================
 * **set_default_connection_parameters** - this function needs to be used to set the database parameters on
   initialization so that when a decorator function is called, it can setup a connection pool to a correct database
+* **is_set_current_database_supported** - this function may be used to determine if the ``*_current_database`` methods
+  may be used or not
 * **set_current_database** - (only supported on Python 3.7+) this function may be used to set the database name for the
   current async context (not thread), this is especially useful for multitenant applications
 * **reset_current_database** - (only supported on Python 3.7+) helper method to reset the current database after
@@ -85,7 +87,8 @@ methods.
             reset_current_database()
 
 .. warning::
-    These methods are only supported in Python 3.7+ due to their use of the ``contextvars`` module.
+    These methods are only supported in Python 3.7+ due to their use of the ``contextvars`` module. The
+    ``is_set_current_database_supported`` method is provided to help tell if these methods may be used.
 
 Decorators
 ==========

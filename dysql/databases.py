@@ -26,6 +26,14 @@ except ImportError:
     CURRENT_DATABASE_VAR = None
 
 
+def is_set_current_database_supported() -> bool:
+    """
+    Determines if the set_current_database method is available on this python runtime.
+    :return: True if available, False otherwise
+    """
+    return bool(CURRENT_DATABASE_VAR)
+
+
 def set_current_database(database: str) -> None:
     """
     Sets the current database, may be used for multitenancy. This is only supported on Python 3.7+. This uses

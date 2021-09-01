@@ -23,5 +23,6 @@ from .connections import (
     sqlquery,
     sqlupdate,
 )
-from .databases import reset_current_database, set_current_database, set_default_connection_parameters
+from .databases import is_set_current_database_supported, reset_current_database, set_current_database, \
+    set_default_connection_parameters
 from .exceptions import DBNotPreparedError

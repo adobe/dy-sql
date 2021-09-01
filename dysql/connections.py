@@ -24,8 +24,6 @@ from .query_utils import get_query_data
 logger = logging.getLogger('database')
 
 
-# Must be after the database classes are defined
-_DEFAULT_CONNECTION_PARAMS = {}
 # Always initialize a database container, it is never set again
 _DATABASE_CONTAINER = DatabaseContainerSingleton()
 

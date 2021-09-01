@@ -6,7 +6,6 @@ NOTICE: Adobe permits you to use, modify, and distribute this file in accordance
 with the terms of the Adobe license agreement accompanying it.
 """
 # pylint: disable=protected-access
-import contextlib
 import sys
 from unittest import mock
 
@@ -32,10 +31,16 @@ class TestDatabaseInitialization:
     def mock_engine(mock_create_engine):
         dysql.databases.DatabaseContainerSingleton().clear()
         dysql.databases._DEFAULT_CONNECTION_PARAMS.clear()
-        # Thrown when contextvars are not supported (python 3.6)
-        with contextlib.suppress(DBNotPreparedError):
-            dysql.databases.set_current_database('')
-        return setup_mock_engine(mock_create_engine)
+
+        # Reset the database before the test
+        if dysql.databases.is_set_current_database_supported():
+            dysql.databases.reset_current_database()
+
+        yield setup_mock_engine(mock_create_engine)
+
+        # Reset database after the test as well
+        if dysql.databases.is_set_current_database_supported():
+            dysql.databases.reset_current_database()
 
     def test_nothing_set(self):
         dysql.databases._DEFAULT_CONNECTION_PARAMS.clear()
@@ -83,6 +88,14 @@ class TestDatabaseInitialization:
             pool_recycle=3600,
             pool_size=10,
         )
+
+    @staticmethod
+    def test_is_set_current_database_supported():
+        # This test only returns different outputs depending on the python runtime
+        if '3.6' in sys.version:
+            assert not dysql.databases.is_set_current_database_supported()
+        else:
+            assert dysql.databases.is_set_current_database_supported()
 
     @pytest.mark.skipif('3.6' in sys.version, reason='set_current_database is not supported on python 3.6')
     def test_current_database_set(self, mock_engine, mock_create_engine):
