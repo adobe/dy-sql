@@ -41,42 +41,69 @@ class TemplateGenerators:
             name: str,
             values: Union[str, Iterable[str]],
             legacy_key: str = None,
+            is_multi_column: bool = False
     ) -> Tuple[str, Optional[dict]]:
         """
         Returns query and params for using "IN" SQL queries.
         :param name: the field name
         :param values: the field values
         :param legacy_key:
+        :param is_multi_column: needed when more than one field is being compared as part of the in statement
         :return: a tuple of the query string and the params dictionary
         """
         if not values:
             return '1 <> 1', None
-        key_name = name
-        if legacy_key:
-            key_name = legacy_key
+        key_name = TemplateGenerators._get_key(name, legacy_key, is_multi_column)
         keys, values = TemplateGenerators._parameterize_list(key_name, values)
+        if is_multi_column:
+            keys = f'({keys})'
         return f'{name} IN {keys}', values
+
+    @staticmethod
+    def in_multi_column(
+            name: str,
+            values: Union[str, Iterable[str]],
+            legacy_key: str = None
+    ):
+        """
+        A wrapper for in_column with is_multi_column set to true
+        """
+        return TemplateGenerators.in_column(name, values, legacy_key, True)
 
     @staticmethod
     def not_in_column(
             name: str,
             values: Union[str, Iterable[str]],
             legacy_key: str = None,
+            is_multi_column: bool = False
     ) -> Tuple[str, Optional[dict]]:
         """
         Returns query and params for using "NOT IN" SQL queries.
         :param name: the field name
         :param values: the field values
         :param legacy_key:
+        :param is_multi_column: needed when more than one field is being compared as part of the not in statement
         :return: a tuple of the query string and the params dictionary
         """
         if not values:
             return '1 = 1', None
-        key_name = name
-        if legacy_key:
-            key_name = legacy_key
+        key_name = TemplateGenerators._get_key(name, legacy_key, is_multi_column)
         keys, values = TemplateGenerators._parameterize_list(key_name, values)
+        if is_multi_column:
+            keys = f'({keys})'
         return f'{name} NOT IN {keys}', values
+
+    @staticmethod
+    def not_in_multi_column(
+            name: str,
+            values: Union[str, Iterable[str]],
+            legacy_key: str = None
+    ):
+
+        """
+        A wrapper for not_in_column with is_multi_column set to true
+        """
+        return TemplateGenerators.not_in_column(name, values, legacy_key, True)
 
     @staticmethod
     def values(
@@ -93,11 +120,18 @@ class TemplateGenerators:
         """
         if not values:
             raise ListTemplateException(f'Must have values for {name} template')
-        key_name = name
-        if legacy_key:
-            key_name = legacy_key
+        key_name = TemplateGenerators._get_key(name, legacy_key, False)
         keys, values = TemplateGenerators._parameterize_list(key_name, values)
         return f'VALUES {keys}', values
+
+    @staticmethod
+    def _get_key(key: str, legacy_key: str, is_multi_column: bool) -> str:
+        key_name = key
+        if legacy_key:
+            key_name = legacy_key
+        if is_multi_column:
+            key_name = re.sub('[, ()]', '', key_name)
+        return key_name
 
     @staticmethod
     def _parameterize_inner_list(key: str, values: Union[str, Iterable[str]]) -> Tuple[str, Optional[dict]]:
@@ -108,11 +142,11 @@ class TemplateGenerators:
             parameterized_keys.append(key)
         else:
             for index, value in enumerate(values):
-                parameterized_key = '{}_{}'.format(key.replace('.', '_'), str(index))
+                parameterized_key = f"{key.replace('.', '_')}_{str(index)}"
                 param_values[parameterized_key] = value
                 parameterized_keys.append(parameterized_key)
 
-        return '( :{} )'.format(', :'.join(parameterized_keys)), param_values
+        return f"( :{', :'.join(parameterized_keys)} )", param_values
 
     @staticmethod
     def _parameterize_list(key: str, values: Union[str, Iterable[str]]) -> Tuple[str, Optional[dict]]:
@@ -130,7 +164,7 @@ class TemplateGenerators:
         for index, value in enumerate(values):
             if isinstance(value, tuple) or key.startswith('values'):
                 param_string, inner_param_values = TemplateGenerators._parameterize_inner_list(
-                    '{}_{}'.format(key, str(index)), value
+                    f'{key}_{str(index)}', value
                 )
                 param_values.update(inner_param_values)
                 param_inner_keys.append(param_string)
@@ -216,11 +250,7 @@ def __validate_keys_clean_query(query, template_params):
     validated_keys = []
     for groups in re.findall(LIST_TEMPLATE_REGEX, query):
         # check first group for the full key
-
-        key = '{keyword}__{table}{column}'.format(
-            keyword=groups[2],
-            table=groups[3] if groups[3] else '',
-            column=groups[4])
+        key = f'{groups[2]}__{groups[3] if groups[3] else ""}{groups[4]}'
         validated_keys.append(key)
         missing_keys = []
 
@@ -231,7 +261,7 @@ def __validate_keys_clean_query(query, template_params):
             missing_keys.append(key)
 
         if len(missing_keys) > 0:
-            raise ListTemplateException('Missing template keys {}'.format(missing_keys))
+            raise ListTemplateException(f'Missing template keys {missing_keys}')
 
         # Clean whitespace as templates will add their own padding later on
         query = query.replace(groups[0], groups[0].strip())

@@ -17,7 +17,15 @@ class TestTemplatesGenerators:
     number_values = [1, 2, 3, 4]
     string_values = ['1', '2', '3', '4']
     insert_values = [('ironman', 1), ('batman', 2)]
+    tuple_values = [(1,2), (3,4)]
     query = 'column_a IN ( :column_a_0, :column_a_1, :column_a_2, :column_a_3 )'
+
+    query_with_list_of_tuples = \
+        '(column_a, column_b) IN (( :column_acolumn_b_0_0, :column_acolumn_b_0_1 ), ' \
+        '( :column_acolumn_b_1_0, :column_acolumn_b_1_1 ))'
+    not_query_with_list_of_tuples = \
+        '(column_a, column_b) NOT IN (( :column_acolumn_b_0_0, :column_acolumn_b_0_1 ), ' \
+        '( :column_acolumn_b_1_0, :column_acolumn_b_1_1 ))'
     query_with_table = \
         'table.column_a IN ( :table_column_a_0, :table_column_a_1, :table_column_a_2, :table_column_a_3 )'
     not_query = 'column_a NOT IN ( :column_a_0, :column_a_1, :column_a_2, :column_a_3 )'
@@ -30,6 +38,8 @@ class TestTemplatesGenerators:
         (TemplateGenerators.in_column, 'column_a', string_values, query),
         (TemplateGenerators.in_column, 'table.column_a', string_values, query_with_table),
         (TemplateGenerators.in_column, 'column_a', [], '1 <> 1'),
+        (TemplateGenerators.in_multi_column, '(column_a, column_b)', tuple_values, query_with_list_of_tuples),
+        (TemplateGenerators.not_in_multi_column, '(column_a, column_b)', tuple_values, not_query_with_list_of_tuples),
         (TemplateGenerators.not_in_column, 'column_a', number_values, not_query),
         (TemplateGenerators.not_in_column, 'table.column_a', number_values, not_query_with_table),
         (TemplateGenerators.not_in_column, 'column_a', string_values, not_query),

@@ -72,10 +72,6 @@ class _ConnectionManager:
         if isinstance(params, DbMapResult):
             params = params.raw()
 
-        # if params:
-        #     logger.debug("Executing query {} with parameters {}".format(query, params))
-        # else:
-        #     logger.debug("Executing query {} without parameters".format(query))
         return self._connection.execute(sqlalchemy.text(query), params)
 
 
@@ -165,7 +161,7 @@ def sqlexists(isolation_level='READ_COMMITTED'):
 
                 query = query.lstrip()
                 if not query.startswith('SELECT EXISTS'):
-                    query = 'SELECT EXISTS ( {} )'.format(query)
+                    query = f'SELECT EXISTS ( {query} )'
                 result = conn_manager.execute_query(query, params).scalar()
                 return result == 1
 
