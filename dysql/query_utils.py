@@ -48,7 +48,7 @@ class TemplateGenerators:
         :param name: the field name
         :param values: the field values
         :param legacy_key:
-        :param is_multi_column: boolean helps determine some string formatting in the template
+        :param is_multi_column: needed when more than one field is being compared as part of the in statement
         :return: a tuple of the query string and the params dictionary
         """
         if not values:
@@ -82,7 +82,7 @@ class TemplateGenerators:
         :param name: the field name
         :param values: the field values
         :param legacy_key:
-        :param is_multi_column: boolean helps determine some string formatting in the template
+        :param is_multi_column: needed when more than one field is being compared as part of the not in statement
         :return: a tuple of the query string and the params dictionary
         """
         if not values:

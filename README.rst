@@ -384,7 +384,6 @@ condition build out for you. This allows you more dynamically exclude values in 
                         template_params={'not_in__item_id': item_id_list})
 
 
-you can also use the TemplateGenerator to handle situations where you want to check against multip columns in pairs
 
 .. code-block:: python
     in_query, in_params = TemplateGenerator.in_column()
