@@ -142,11 +142,11 @@ class TemplateGenerators:
             parameterized_keys.append(key)
         else:
             for index, value in enumerate(values):
-                parameterized_key = '{}_{}'.format(key.replace('.', '_'), str(index))
+                parameterized_key = f"{key.replace('.', '_')}_{str(index)}"
                 param_values[parameterized_key] = value
                 parameterized_keys.append(parameterized_key)
 
-        return '( :{} )'.format(', :'.join(parameterized_keys)), param_values
+        return f"( :{', :'.join(parameterized_keys)} )", param_values
 
     @staticmethod
     def _parameterize_list(key: str, values: Union[str, Iterable[str]]) -> Tuple[str, Optional[dict]]:
@@ -164,7 +164,7 @@ class TemplateGenerators:
         for index, value in enumerate(values):
             if isinstance(value, tuple) or key.startswith('values'):
                 param_string, inner_param_values = TemplateGenerators._parameterize_inner_list(
-                    '{}_{}'.format(key, str(index)), value
+                    f'{key}_{str(index)}', value
                 )
                 param_values.update(inner_param_values)
                 param_inner_keys.append(param_string)

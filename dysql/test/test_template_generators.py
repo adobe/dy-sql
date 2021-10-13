@@ -21,9 +21,11 @@ class TestTemplatesGenerators:
     query = 'column_a IN ( :column_a_0, :column_a_1, :column_a_2, :column_a_3 )'
 
     query_with_list_of_tuples = \
-        '(column_a, column_b) IN (( :column_acolumn_b_0_0, :column_acolumn_b_0_1 ), ( :column_acolumn_b_1_0, :column_acolumn_b_1_1 ))'
+        '(column_a, column_b) IN (( :column_acolumn_b_0_0, :column_acolumn_b_0_1 ), ' \
+        '( :column_acolumn_b_1_0, :column_acolumn_b_1_1 ))'
     not_query_with_list_of_tuples = \
-        '(column_a, column_b) NOT IN (( :column_acolumn_b_0_0, :column_acolumn_b_0_1 ), ( :column_acolumn_b_1_0, :column_acolumn_b_1_1 ))'
+        '(column_a, column_b) NOT IN (( :column_acolumn_b_0_0, :column_acolumn_b_0_1 ), ' \
+        '( :column_acolumn_b_1_0, :column_acolumn_b_1_1 ))'
     query_with_table = \
         'table.column_a IN ( :table_column_a_0, :table_column_a_1, :table_column_a_2, :table_column_a_3 )'
     not_query = 'column_a NOT IN ( :column_a_0, :column_a_1, :column_a_2, :column_a_3 )'
