@@ -250,10 +250,7 @@ def __validate_keys_clean_query(query, template_params):
     validated_keys = []
     for groups in re.findall(LIST_TEMPLATE_REGEX, query):
         # check first group for the full key
-        key = '{keyword}__{table}{column}'.format(
-            keyword=groups[2],
-            table=groups[3] if groups[3] else '',
-            column=groups[4])
+        key = f'{groups[2]}__{groups[3] if groups[3] else ""}{groups[4]}'
         validated_keys.append(key)
         missing_keys = []
 
@@ -264,7 +261,7 @@ def __validate_keys_clean_query(query, template_params):
             missing_keys.append(key)
 
         if len(missing_keys) > 0:
-            raise ListTemplateException('Missing template keys {}'.format(missing_keys))
+            raise ListTemplateException(f'Missing template keys {missing_keys}')
 
         # Clean whitespace as templates will add their own padding later on
         query = query.replace(groups[0], groups[0].strip())
