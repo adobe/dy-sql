@@ -4,6 +4,7 @@ on:
   - pull_request
 jobs:
   test:
+    if: github.repository == 'adobe/dy-sql'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -33,6 +34,7 @@ jobs:
         files: test-reports/test-results.xml
         check_name: "Test Results ${{ matrix.python-version }}"
   publish:
+    if: github.repository == 'adobe/dy-sql'
     runs-on: ubuntu-latest
     needs: test
     steps:
