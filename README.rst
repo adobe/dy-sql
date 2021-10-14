@@ -345,7 +345,9 @@ condition build out for you. This allows you to more dynamically include values 
         return QueryData("SELECT * FROM table WHERE {in__item_id}",
                         template_params={'in__item_id': item_id_list})
 
+
 you can also use the TemlpateGenerate.in_column method to get back a tuple of query and params
+
 .. code-block:: python
 
     @sqlquery()
@@ -360,6 +362,7 @@ pass a list of tuples to an in clause allowing you to match against multiple col
 `NOTE: this is only available through the TemplateGenerator using query_params and not through the the template_params method`
 
 .. code-block:: python
+
     @sqlquery()
     def select_multi(tuple_list):
         in_query, in_params = TemplateGenerator.in_multi_column('(key1, key2)', tuple_list)
@@ -367,6 +370,7 @@ pass a list of tuples to an in clause allowing you to match against multiple col
 
 
 .. code-block:: python
+
     @sqlquery()
     def select_multi(tuple_list):
         in_query, in_params = TemplateGenerator.not_in_multi_column('(key1, key2)', tuple_list)
@@ -385,8 +389,18 @@ condition build out for you. This allows you more dynamically exclude values in 
 
 
 
+
+you can also use the TemlpateGenerate.not_in_column method to get back a tuple of query and params
+
 .. code-block:: python
-    in_query, in_params = TemplateGenerator.in_column()
+
+    @sqlquery()
+    def select_items(item_id_list):
+        not_in_query, not_in_params = TemplateGenerator.not_in_column('key', item_id_list)
+        # NOTE: the query string is using an f-string and passing into query_params instead of template_params
+        return QueryData(f"SELECT * FROM table WHERE {not_in_query}", query_params=not_in_params)
+
+
 **values** template - when inserting and you have multiple records to insert, this allows you to pass
 multiple records for insert in a single INSERT statement.
 
