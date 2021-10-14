@@ -352,20 +352,20 @@ you can also use the TemlpateGenerate.in_column method to get back a tuple of qu
 
     @sqlquery()
     def select_items(item_id_list):
-        in_query, in_params = TemplateGenerator.in_column('key', item_id_list)
+        in_query, in_params = TemplateGenerators.in_column('key', item_id_list)
         # NOTE: the query string is using an f-string and passing into query_params instead of template_params
         return QueryData(f"SELECT * FROM table WHERE {in_query}", query_params=in_params)
 
 
 **in and not in multi column** - this template works the same as the in and not in template but it will allow you to
 pass a list of tuples to an in clause allowing you to match against multiple columns.
-`NOTE: this is only available through the TemplateGenerator using query_params and not through the the template_params method`
+`NOTE: this is only available through the TemplateGenerators using query_params and not through the the template_params method`
 
 .. code-block:: python
 
     @sqlquery()
     def select_multi(tuple_list):
-        in_query, in_params = TemplateGenerator.in_multi_column('(key1, key2)', tuple_list)
+        in_query, in_params = TemplateGenerators.in_multi_column('(key1, key2)', tuple_list)
         return QueryData(f"SELECT * FROM table WHERE {in_query}", query_params=in_params)
 
 
@@ -373,7 +373,7 @@ pass a list of tuples to an in clause allowing you to match against multiple col
 
     @sqlquery()
     def select_multi(tuple_list):
-        in_query, in_params = TemplateGenerator.not_in_multi_column('(key1, key2)', tuple_list)
+        in_query, in_params = TemplateGenerators.not_in_multi_column('(key1, key2)', tuple_list)
         return QueryData(f"SELECT * FROM table WHERE {in_query}", query_params=in_params)
 
 
@@ -390,13 +390,13 @@ condition build out for you. This allows you more dynamically exclude values in 
 
 
 
-you can also use the TemlpateGenerate.not_in_column method to get back a tuple of query and params
+you can also use the TemplateGenerators.not_in_column method to get back a tuple of query and params
 
 .. code-block:: python
 
     @sqlquery()
     def select_items(item_id_list):
-        not_in_query, not_in_params = TemplateGenerator.not_in_column('key', item_id_list)
+        not_in_query, not_in_params = TemplateGenerators.not_in_column('key', item_id_list)
         # NOTE: the query string is using an f-string and passing into query_params instead of template_params
         return QueryData(f"SELECT * FROM table WHERE {not_in_query}", query_params=not_in_params)
 
