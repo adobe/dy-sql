@@ -36,7 +36,7 @@ Component Breakdown
   query to an object in python
 * **DbMapResultModel** - pydantic version of ``DbMapResult`` that allows easy mapping to pydantic models
 * **@sqlquery** - decorator for select queries that can return a SQL result in a ``DbMapResult``
-* **@sqlinsert** - decorator for any queries that can change data in the database, this can take a set of
+* **@sqlupdate** - decorator for any queries that can change data in the database, this can take a set of
   values and yield multiple operations back for insertions or updates inside of a transaction
 * **@sqlexists** - decorator for a simplified select query that will return true if a record exists and false otherwise
 * **XDbTestManager** - test manager classes that may be used for testing purposes
