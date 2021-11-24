@@ -230,6 +230,10 @@ mapper can combine multiple records into a single result if there is an
 * ``SingleRowAndColumnMapper`` - returns a single scalar value even if multiple records and columns are returned
   from the database.
 * ``CountMapper`` - alias for ``SingleRowAndColumnMapper`` to make it clear that it may be used for ``count`` queries.
+* ``KeyValueMapper`` - returns a dictionary mapping 1 column to the keys and 1 column to the values.
+  By default the key is mapped to the first column and value is mapped to the second column. You can override the key_column
+  and value_columns by specifying the name of the colums you want for each. You can also pass in a has_multiple_values
+  which defaults to False. Doing so will allow you to get a dictionary of lists based on the keys and values you specify
 * Custom mappers may be made by extending the ``BaseMapper`` class and implementing the ``map_records`` method.
 
 basic query with conditions hardcoded into query and default mapper
@@ -299,8 +303,33 @@ basic count query that only returns the scalar value returned for the count
         return get_count_for_name('joe')
 
     @sqlquery(mapper=CountMapper)
-    def get_count_for_name(name)
+    def get_count_for_name(name):
         return QueryData("SELECT COUNT(*) FROM table WHERE name=:name", query_params={'name': name})
+
+
+basic query returning dictionary
+
+.. code-block:: python
+
+    @sqlquery(mapper=KeyValueMapper())
+    def get_status_by_name():
+        return QueryData("SELECT name, status FROM table")
+
+query returning a dictionary where we are specifying the keys. Note that the columns are returning in a different order
+
+.. code-block:: python
+
+    @sqlquery(mapper=KeyValueMapper(key_column='name', value_column='status'))
+    def get_status_by_name():
+        return QueryData("SELECT status, name FROM table")
+
+query returning a dictionary where there are multiple results under each key. Note that here we are essentially grouping under status
+
+.. code-block:: python
+
+    @sqlquery(mapper=KeyValueMapper(key_column='status', value_column='name', has_multiple_values=True))
+    def get_status_by_name():
+        return QueryData("SELECT status, name FROM table")
 
 
 @sqlupdate

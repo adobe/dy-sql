@@ -9,13 +9,16 @@ with the terms of the Adobe license agreement accompanying it.
 
 import abc
 import logging
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from typing import Any, Optional, Type
 
 import sqlalchemy
 
 
 LOGGER = logging.getLogger(__name__)
+
+class MapperError(Exception):
+    pass
 
 
 class DbMapResultBase(abc.ABC):
@@ -202,10 +205,29 @@ class CountMapper(SingleRowAndColumnMapper):
 
 class KeyValueMapper(BaseMapper):
     """
-    Returns a dictionary mapping the first column to the second column in each row
+    :param key_column can be specified to determine what field to map to as the key for are keyed values
+    :param value_column can be specified to help decide what column to add as a value
+    :param has_multiple_values_per_key is False by default but when True it tells the keyvalue mapper
+        the each key may have more than 1 result. this will returns a dictionary of lists when set
+
     """
+    def __init__(self, key_column=0, value_column=1, has_multiple_values_per_key=False):
+        if key_column == value_column:
+            raise MapperError('key and value columns cannot be the same')
+
+        self.key_column = key_column
+        self.value_column = value_column
+        self.has_multiple_values_per_key = has_multiple_values_per_key
+
     def map_records(self, records: sqlalchemy.engine.CursorResult) -> Any:
         results = {}
+        if self.has_multiple_values_per_key:
+            results = defaultdict(list)
         for record in records:
-            results[record[0]] = record[1]
+            key = record[self.key_column]
+            value = record[self.value_column]
+            if self.has_multiple_values_per_key:
+                results[key].append(value)
+            else:
+                results[key] = value
         return results
