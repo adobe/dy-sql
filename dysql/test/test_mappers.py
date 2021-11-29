@@ -12,8 +12,9 @@ from dysql import (
     SingleRowMapper,
     SingleColumnMapper,
     SingleRowAndColumnMapper,
-    CountMapper
+    CountMapper, KeyValueMapper
 )
+from dysql.mappers import MapperError
 
 
 class TestMappers:
@@ -27,31 +28,31 @@ class TestMappers:
 
     def test_record_combining(self):
         mapper = RecordCombiningMapper()
-        assert mapper.map_records([]) == []
+        assert len(mapper.map_records([])) == 0
         assert self._unwrap_results(mapper.map_records([{'a': 1, 'b': 2}])) == [{'a': 1, 'b': 2}]
         assert self._unwrap_results(mapper.map_records([
             {'id': 1, 'a': 1, 'b': 2},
             {'id': 2, 'a': 1, 'b': 2},
             {'id': 1, 'c': 3},
         ])) == [
-            {'id': 1, 'a': 1, 'b': 2, 'c': 3},
-            {'id': 2, 'a': 1, 'b': 2},
-        ]
+                   {'id': 1, 'a': 1, 'b': 2, 'c': 3},
+                   {'id': 2, 'a': 1, 'b': 2},
+               ]
 
     @staticmethod
     def test_record_combining_no_record_mapper():
         mapper = RecordCombiningMapper(record_mapper=None)
-        assert mapper.map_records([]) == []
+        assert len(mapper.map_records([])) == 0
         assert mapper.map_records([{'a': 1, 'b': 2}]) == [{'a': 1, 'b': 2}]
         assert mapper.map_records([
             {'id': 1, 'a': 1, 'b': 2},
             {'id': 2, 'a': 1, 'b': 2},
             {'id': 1, 'c': 3},
         ]) == [
-            {'id': 1, 'a': 1, 'b': 2},
-            {'id': 2, 'a': 1, 'b': 2},
-            {'id': 1, 'c': 3},
-        ]
+                   {'id': 1, 'a': 1, 'b': 2},
+                   {'id': 2, 'a': 1, 'b': 2},
+                   {'id': 1, 'c': 3},
+               ]
 
     @staticmethod
     def test_single_row():
@@ -78,7 +79,7 @@ class TestMappers:
     @staticmethod
     def test_single_column():
         mapper = SingleColumnMapper()
-        assert mapper.map_records([]) == []
+        assert len(mapper.map_records([])) == 0
         assert mapper.map_records([{'a': 1, 'b': 2}]) == [1]
         assert mapper.map_records([
             {'id': 'myid1', 'a': 1, 'b': 2},
@@ -87,13 +88,12 @@ class TestMappers:
         ]) == ['myid1', 'myid2', 'myid3']
 
     @staticmethod
-    @pytest.mark.parametrize('_cls', [
-        SingleRowAndColumnMapper,
+    @pytest.mark.parametrize('mapper', [
+        SingleRowAndColumnMapper(),
         # Alias for the other one
-        CountMapper,
+        CountMapper(),
     ])
-    def test_single_column_and_row(_cls):
-        mapper = _cls()
+    def test_single_column_and_row(mapper):
         assert mapper.map_records([]) is None
         assert mapper.map_records([{'a': 1, 'b': 2}]) == 1
         assert mapper.map_records([
@@ -101,3 +101,52 @@ class TestMappers:
             {'id': 2, 'a': 1, 'b': 2},
             {'id': 1, 'c': 3},
         ]) == 'myid'
+
+    @staticmethod
+    @pytest.mark.parametrize('mapper, expected', [
+        (KeyValueMapper(), {'a': 4, 'b': 7}),
+        (KeyValueMapper(key_column='column_named_something'), {'a': 4, 'b': 7}),
+        (KeyValueMapper(value_column='column_with_some_value'), {'a': 4, 'b': 7}),
+        (KeyValueMapper(has_multiple_values_per_key=True), {'a': [1, 2, 3, 4], 'b': [3, 4, 5, 6, 7]}),
+        (KeyValueMapper(key_column='column_named_something', has_multiple_values_per_key=True),
+         {'a': [1, 2, 3, 4], 'b': [3, 4, 5, 6, 7]}),
+        (KeyValueMapper(key_column='column_with_some_value', value_column='column_named_something',
+                        has_multiple_values_per_key=True),
+         {1: ['a'], 2: ['a'], 3: ['a', 'b'], 4: ['a', 'b'], 5: ['b'], 6: ['b'], 7: ['b']}),
+        (KeyValueMapper(key_column='column_with_some_value', value_column='column_named_something'),
+         {1: 'a', 2: 'a', 3: 'b', 4: 'b', 5: 'b', 6: 'b', 7: 'b'}),
+    ])
+    def test_key_mapper_key_has_multiple(mapper, expected):
+        result = mapper.map_records([
+            TestRow(('column_named_something', 'column_with_some_value'), ['a', 1]),
+            TestRow(('column_named_something', 'column_with_some_value'), ['a', 2]),
+            TestRow(('column_named_something', 'column_with_some_value'), ['a', 3]),
+            TestRow(('column_named_something', 'column_with_some_value'), ['a', 4]),
+            TestRow(('column_named_something', 'column_with_some_value'), ['b', 3]),
+            TestRow(('column_named_something', 'column_with_some_value'), ['b', 4]),
+            TestRow(('column_named_something', 'column_with_some_value'), ['b', 5]),
+            TestRow(('column_named_something', 'column_with_some_value'), ['b', 6]),
+            TestRow(('column_named_something', 'column_with_some_value'), ['b', 7]),
+        ])
+        assert len(result) == len(expected)
+        assert result == expected
+
+    @staticmethod
+    def test_key_mapper_key_value_same():
+        with pytest.raises(MapperError, match='key and value columns cannot be the same'):
+            KeyValueMapper(key_column='same', value_column='same')
+
+
+class TestRow:  # pylint: disable=too-few-public-methods
+    """
+    Helper class does the most basic functionality we see when accessing records passed in
+    """
+
+    def __init__(self, fields, values):
+        self.fields = fields
+        self.values = values
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self.values[key]
+        return self.values[self.fields.index(key)]

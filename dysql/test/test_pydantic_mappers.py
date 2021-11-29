@@ -52,7 +52,7 @@ def test_field_conversion():
 
 def test_complex_object_record_combining():
     mapper = RecordCombiningMapper(record_mapper=CombiningDbModel)
-    assert mapper.map_records([]) == []
+    assert len(mapper.map_records([])) == 0
     assert _unwrap_results(mapper.map_records([
         {'id': 1, 'list1': 'val1', 'set1': 'val2', 'key1': 'k1', 'val1': 'v1', 'key2': 'k3', 'val2': 3},
         {'id': 2, 'list1': 'val1'},
