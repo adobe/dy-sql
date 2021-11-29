@@ -232,8 +232,8 @@ mapper can combine multiple records into a single result if there is an
 * ``CountMapper`` - alias for ``SingleRowAndColumnMapper`` to make it clear that it may be used for ``count`` queries.
 * ``KeyValueMapper`` - returns a dictionary mapping 1 column to the keys and 1 column to the values.
   By default the key is mapped to the first column and value is mapped to the second column. You can override the key_column
-  and value_columns by specifying the name of the colums you want for each. You can also pass in a has_multiple_values
-  which defaults to False. Doing so will allow you to get a dictionary of lists based on the keys and values you specify
+  and value_columns by specifying the name of the columns you want for each. You can also pass in a has_multiple_values
+  which defaults to False. Doing so will allow you to get a dictionary of lists based on the keys and values you specify.
 * Custom mappers may be made by extending the ``BaseMapper`` class and implementing the ``map_records`` method.
 
 basic query with conditions hardcoded into query and default mapper
