@@ -28,7 +28,7 @@ class TestMappers:
 
     def test_record_combining(self):
         mapper = RecordCombiningMapper()
-        assert mapper.map_records([]) == []
+        assert len(mapper.map_records([])) == 0
         assert self._unwrap_results(mapper.map_records([{'a': 1, 'b': 2}])) == [{'a': 1, 'b': 2}]
         assert self._unwrap_results(mapper.map_records([
             {'id': 1, 'a': 1, 'b': 2},
@@ -42,7 +42,7 @@ class TestMappers:
     @staticmethod
     def test_record_combining_no_record_mapper():
         mapper = RecordCombiningMapper(record_mapper=None)
-        assert mapper.map_records([]) == []
+        assert len(mapper.map_records([])) == 0
         assert mapper.map_records([{'a': 1, 'b': 2}]) == [{'a': 1, 'b': 2}]
         assert mapper.map_records([
             {'id': 1, 'a': 1, 'b': 2},
@@ -79,7 +79,7 @@ class TestMappers:
     @staticmethod
     def test_single_column():
         mapper = SingleColumnMapper()
-        assert mapper.map_records([]) == []
+        assert len(mapper.map_records([])) == 0
         assert mapper.map_records([{'a': 1, 'b': 2}]) == [1]
         assert mapper.map_records([
             {'id': 'myid1', 'a': 1, 'b': 2},
