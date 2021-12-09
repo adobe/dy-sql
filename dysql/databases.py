@@ -83,6 +83,7 @@ def set_default_connection_parameters(
         pool_size: int = 10,
         pool_recycle: int = 3600,
         echo_queries: bool = False,
+        charset: str = 'utf8'
 ):  # pylint: disable=too-many-arguments,unused-argument
     """
     Initializes the parameters to use when connecting to the database. This is a subset of the parameters
@@ -97,6 +98,7 @@ def set_default_connection_parameters(
     :param pool_recycle: amount of time to wait between resetting the connections
                          in the pool (default 3600)
     :param echo_queries: this tells sqlalchemy to print the queries when set to True (default false)
+    :param charset: the charset for the sql engine to initialize with. (default utf8)
     :exception DBNotPrepareError: happens when required parameters are missing
     """
     _validate_param('host', host)
@@ -122,8 +124,9 @@ class Database:
             password = _DEFAULT_CONNECTION_PARAMS.get('password')
             host = _DEFAULT_CONNECTION_PARAMS.get('host')
             port = _DEFAULT_CONNECTION_PARAMS.get('port')
+            charset = _DEFAULT_CONNECTION_PARAMS.get('charset')
 
-            url = f'mysql+mysqlconnector://{user}:{password}@{host}:{port}/{self.database}?charset=utf8'
+            url = f'mysql+mysqlconnector://{user}:{password}@{host}:{port}/{self.database}?charset={charset}'
             self._engine = sqlalchemy.create_engine(
                 url,
                 pool_recycle=_DEFAULT_CONNECTION_PARAMS.get('pool_recycle'),
