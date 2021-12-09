@@ -15,7 +15,6 @@ import dysql.connections
 from dysql import sqlquery, DBNotPreparedError, set_default_connection_parameters, QueryData
 from dysql.test import mock_create_engine_fixture, setup_mock_engine
 
-
 _ = mock_create_engine_fixture
 
 
@@ -83,6 +82,22 @@ class TestDatabaseInitialization:
         assert db_container.current_database.database == 'test'
         mock_create_engine.assert_called_once_with(
             'mysql+mysqlconnector://user:password@fake:3306/test?charset=utf8',
+            echo=False,
+            pool_pre_ping=True,
+            pool_recycle=3600,
+            pool_size=10,
+        )
+
+    def test_different_charset(self, mock_engine, mock_create_engine):
+        db_container = dysql.databases.DatabaseContainerSingleton()
+        set_default_connection_parameters('host', 'user', 'password', 'database', charset='other')
+        assert len(db_container) == 0
+        mock_engine.connect().execution_options().execute.return_value = []
+        self.query()
+
+        # Only one database is initialized
+        mock_create_engine.assert_called_once_with(
+            'mysql+mysqlconnector://user:password@host:3306/database?charset=other',
             echo=False,
             pool_pre_ping=True,
             pool_recycle=3600,

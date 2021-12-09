@@ -56,8 +56,9 @@ using the ``set_default_connection_parameters`` method.
             maria_db_host,
             maria_db_user,
             maria_db_password,
-            maria_db_databas,
+            maria_db_database,
             port=maria_db_port,
+            charset=maria_db_charset
         )
 
 Note: the keyword arguments are not required and have standard default values,

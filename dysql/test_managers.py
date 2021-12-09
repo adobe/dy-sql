@@ -169,6 +169,7 @@ class MariaDbTestManager(DbTestManagerBase):
             echo_queries: bool = False,
             keep_db: bool = False,
             pool_size=3,
+            charset=None
     ):  # pylint: disable=too-many-arguments
         """
         :param db_name: the name you want for your test database
@@ -176,6 +177,7 @@ class MariaDbTestManager(DbTestManagerBase):
         :param echo_queries: True if you want to see queries
         :param keep_db: This prevents teardown from removing the created DB after running tests
                         which can be helpful in debugging
+        :param charset: This allows you to override the default charset if you need something besides utf8
         """
         super().__init__(
             os.getenv('MARIA_HOST', 'localhost'),
@@ -188,6 +190,7 @@ class MariaDbTestManager(DbTestManagerBase):
             pool_size=pool_size,
             docker_container=os.getenv('MARIA_CONTAINER_NAME', 'mariadb'),
             keep_db=keep_db,
+            charset=charset
         )
 
     def _create_test_db(self) -> None:
