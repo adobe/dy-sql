@@ -170,7 +170,7 @@ def sqlexists(isolation_level='READ_COMMITTED'):
     return decorator
 
 
-def sqlupdate(isolation_level='READ_COMMITTED', disable_foreign_key_checks=False):
+def sqlupdate(isolation_level='READ_COMMITTED', disable_foreign_key_checks=False, on_success=None):
     """
     :param isolation_level should specify whether we can read data from transactions that are not
         yet committed defaults to READ_COMMITTED
@@ -231,6 +231,8 @@ def sqlupdate(isolation_level='READ_COMMITTED', disable_foreign_key_checks=False
 
                 if disable_foreign_key_checks:
                     conn_manager.execute_query("SET FOREIGN_KEY_CHECKS=1")
+                if on_success:
+                    on_success(*args, **kwargs)
 
         return handle_query
 

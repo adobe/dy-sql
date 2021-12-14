@@ -75,6 +75,36 @@ def test_insert_multiple_values(mock_engine):
     })
 
 
+@pytest.mark.parametrize('args', [
+    ([('bob', 'bob@email.com')]),
+    ([('bob', 'bob@email.com'), ('tom', 'tom@email.com'),]),
+    None,
+    (),
+])
+def test_insert_with_callback(args):
+    def callback(items):
+        assert items == args
+
+    @sqlupdate(on_success=callback)
+    def insert(items):
+        yield QueryData(f"INSERT INTO table(name, email) {items}")
+
+    insert(args)
+
+
+def test_insert_with_callack_not_called(mock_engine):
+    def callback():
+        assert False
+
+    @sqlupdate(on_success=callback)
+    def insert():
+        yield QueryData("INSERT INTO table(name, email)")
+
+    mock_engine.connect().execution_options.return_value.execute.side_effect = Exception()
+    with pytest.raises(Exception):
+        insert()
+
+
 @sqlupdate()
 def insert_into_multiple_values(users):
     yield QueryData("INSERT INTO table(name, email) {values__users}",
