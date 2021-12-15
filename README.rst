@@ -345,7 +345,7 @@ Handles any SQL that is not a select. This is primarily, but not limited to, ``i
         return QueryData("INSERT INTO", template_params={'in__item_id':item_id_list})
 
 You can yield multiple QueryData objects. This is done in a transaction and it can be helpful for data integrity or just
-a nice clean way to run a set of queries
+a nice clean way to run a set of updates.
 
 .. code-block:: python
 
