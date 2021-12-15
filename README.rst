@@ -337,11 +337,38 @@ query returning a dictionary where there are multiple results under each key. No
 ~~~~~~~~~~
 Handles any SQL that is not a select. This is primarily, but not limited to, ``insert``, ``update``, and ``delete``.
 
+
 .. code-block:: python
 
     @sqlupdate()
-    def insert_items(item_dict)
+    def insert_items(item_dict):
         return QueryData("INSERT INTO", template_params={'in__item_id':item_id_list})
+
+You can yield multiple QueryData objects. This is done in a transaction and it can be helpful for data integrity or just
+a nice clean way to run a set of updates.
+
+.. code-block:: python
+
+    @sqlupdate()
+    def insert_items(item_dict):
+        insert_values_1, insert_params_1 = TemplateGenerator.values('table1values', _get_values_for_1_from_items(item_dict))
+        insert_values_2, insert_params_2 = TemplateGenerator.values('table2values', _get_values_for_2_from_items(item_dict))
+        yield QueryData(f'INSERT INTO table_1 {insert_values_1}', query_params=insert_values_params_1)
+        yield QueryData(f'INSERT INTO table_2 {insert_values_2}', query_params=insert_values_params_2)
+
+if needed you can assign a callback to be ran after a query or set of queries completes successfully
+
+.. code-block:: python
+
+    @sqlupdate(on_success=_handle_insert_success)
+    def insert_items_with_callback(item_dict):
+        insert_values_1, insert_params_1 = TemplateGenerator.values('table1values', _get_values_for_1_from_items(item_dict))
+        insert_values_2, insert_params_2 = TemplateGenerator.values('table2values', _get_values_for_2_from_items(item_dict))
+        yield QueryData(f'INSERT INTO table_1 {insert_values_1}', query_params=insert_values_params_1)
+        yield QueryData(f'INSERT INTO table_2 {insert_values_2}', query_params=insert_values_params_2)
+
+    def _handle_insert_success(item_dict):
+        #  callback logic here happens after the transaction is complete
 
 @sqlexists
 ~~~~~~~~~~
