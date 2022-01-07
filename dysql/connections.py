@@ -231,8 +231,8 @@ def sqlupdate(isolation_level='READ_COMMITTED', disable_foreign_key_checks=False
 
                 if disable_foreign_key_checks:
                     conn_manager.execute_query("SET FOREIGN_KEY_CHECKS=1")
-                if on_success:
-                    on_success(*args, **kwargs)
+            if on_success:
+                on_success(*args, **kwargs)
 
         return handle_query
 
