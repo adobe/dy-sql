@@ -26,7 +26,8 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
     Additionally, lists, sets, and dicts will ignore null values from the database. Therefore you must provide default
     values for these fields when used or else validation will fail.
     """
-
+    # List fields that are aggregated into a string
+    _list_as_string_fields: Set[str] = set()
     # List fields (type does not matter)
     _list_fields: Set[str] = set()
     # Set fields (type does not matter)
@@ -71,6 +72,16 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
         else:
             current_dict[model_field_name] = {record[field]: record[value_field]}
 
+    def _map_list_from_string(self, current_dict: dict, record: sqlalchemy.engine.Row, field: str):
+        list_string = record[field]
+        if self._has_been_mapped():
+            return
+
+        if list_string and isinstance(list_string, str):
+            values_from_string = list_string.split(',')
+            if field not in current_dict:
+                current_dict[field] = values_from_string
+
     def map_record(self, record: sqlalchemy.engine.Row) -> None:
         """
         Implementation of map_record that handles the special "_" prefixed fields listed at the top of this class.
@@ -87,6 +98,8 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
         for field in record.keys():
             if field in self._list_fields:
                 self._map_list(current_dict, record, field)
+            elif field in self._list_as_string_fields:
+                self._map_list_from_string(current_dict, record, field)
             elif field in self._set_fields:
                 self._map_set(current_dict, record, field)
             elif field in self._dict_key_fields:

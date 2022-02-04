@@ -5,7 +5,6 @@ All Rights Reserved.
 NOTICE: Adobe permits you to use, modify, and distribute this file in accordance
 with the terms of the Adobe license agreement accompanying it.
 """
-
 from typing import Any, Dict, List, Set
 
 from dysql import (
@@ -37,6 +36,14 @@ class CombiningDbModel(DbMapResultModel):
 
 class DefaultListCombiningDbModel(CombiningDbModel):
     list1: List[str] = []
+
+
+class ListWithStringsModel(DbMapResultModel):
+    _list_as_string_fields: Set[str] = {'list1', 'list2'}
+
+    id: int
+    list1: List[str]
+    list2: List[int]
 
 
 def _unwrap_results(results):
@@ -86,3 +93,33 @@ def test_complex_object_with_null_values():
         'dict1': {},
         'dict2': {},
     }
+
+
+def test_lists_from_strings():
+    mapper = SingleRowMapper(record_mapper=ListWithStringsModel)
+    assert mapper.map_records([{
+        'id': 1,
+        'list1': 'a,b,c,d',
+        'list2': '1,2,3,4'
+    }]).raw() == {
+        'id': 1,
+        'list1': ['a', 'b', 'c', 'd'],
+        'list2': [1, 2, 3, 4]
+    }
+
+
+def test_lists_from_strings_multiple_records_first_result_only():
+    mapper = RecordCombiningMapper(record_mapper=ListWithStringsModel)
+    assert mapper.map_records([{
+        'id': 1,
+        'list1': 'a,b',
+        'list2': '1,2'
+    }, {
+        'id': 1,
+        'list1': 'c,d',
+        'list2': '3,4'
+    }])[0].raw() == {
+               'id': 1,
+               'list1': ['a', 'b'],
+               'list2': [1, 2]
+           }
