@@ -79,7 +79,8 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
 
         if list_string and isinstance(list_string, str):
             values_from_string = list_string.split(',')
-            if field not in current_dict:
+
+            if field not in current_dict or not current_dict[field]:
                 current_dict[field] = values_from_string
 
     def map_record(self, record: sqlalchemy.engine.Row) -> None:
