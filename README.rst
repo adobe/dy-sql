@@ -190,7 +190,8 @@ Lists, sets, and dicts (when using the RecordCombiningMapper) require additional
 
     class ComplexDbModel(DbMapResultModel):
         # if any data has been aggregated or saved into a string as a comma delimited list, this will convert to a list
-        _list_as_string_fields: Set[str] = {'list_from_string'}
+        # NOTE this only does simple splitting and is not fully rfc4180 compatible
+        _csv_list_fields: Set[str] = {'list_from_string'}
         # List fields (type does not matter)
         _list_fields: Set[str] = {'list1'}
         # Set fields (type does not matter)
