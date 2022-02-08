@@ -5,8 +5,10 @@ All Rights Reserved.
 NOTICE: Adobe permits you to use, modify, and distribute this file in accordance
 with the terms of the Adobe license agreement accompanying it.
 """
-
 from typing import Any, Dict, List, Set
+import pytest
+
+from pydantic.error_wrappers import ValidationError
 
 from dysql import (
     RecordCombiningMapper,
@@ -37,6 +39,14 @@ class CombiningDbModel(DbMapResultModel):
 
 class DefaultListCombiningDbModel(CombiningDbModel):
     list1: List[str] = []
+
+
+class ListWithStringsModel(DbMapResultModel):
+    _csv_list_fields: Set[str] = {'list1', 'list2'}
+
+    id: int
+    list1: List[str]
+    list2: List[int] = []  # help test empty list gets filled
 
 
 def _unwrap_results(results):
@@ -86,3 +96,78 @@ def test_complex_object_with_null_values():
         'dict1': {},
         'dict2': {},
     }
+
+
+def test_csv_list_field():
+    mapper = SingleRowMapper(record_mapper=ListWithStringsModel)
+    assert mapper.map_records([{
+        'id': 1,
+        'list1': 'a,b,c,d',
+        'list2': '1,2,3,4'
+    }]).raw() == {
+        'id': 1,
+        'list1': ['a', 'b', 'c', 'd'],
+        'list2': [1, 2, 3, 4]
+    }
+
+
+def test_csv_list_field_extends():
+    mapper = RecordCombiningMapper(record_mapper=ListWithStringsModel)
+    assert mapper.map_records([{
+        'id': 1,
+        'list1': 'a,b',
+        'list2': '1,2'
+    }, {
+        'id': 1,
+        'list1': 'c,d',
+        'list2': '3,4'
+    }])[0].raw() == {
+               'id': 1,
+               'list1': ['a', 'b', 'c', 'd'],
+               'list2': [1, 2, 3, 4]
+           }
+
+
+def test_csv_list_field_multiple_records_duplicates():
+    mapper = RecordCombiningMapper(record_mapper=ListWithStringsModel)
+    assert mapper.map_records([{
+        'id': 1,
+        'list1': 'a,b,c,d',
+        'list2': '1,2,3,4'
+    }, {
+        'id': 1,
+        'list1': 'a,b,c,d',
+        'list2': '1,2,3,4'
+    }])[0].raw() == {
+               'id': 1,
+               'list1': ['a', 'b', 'c', 'd', 'a', 'b', 'c', 'd'],
+               'list2': [1, 2, 3, 4, 1, 2, 3, 4]
+           }
+
+
+def test_csv_list_field_without_mapping_ignored():
+    mapper = SingleRowMapper(record_mapper=ListWithStringsModel)
+    assert mapper.map_records([{
+        'id': 1,
+        'list1': 'a,b,c,d',
+        'list2': '1,2,3,4',
+        'list3': 'x,y,z'
+    }]).raw() == {
+               'id': 1,
+               'list1': ['a', 'b', 'c', 'd'],
+               'list2': [1, 2, 3, 4]
+           }
+
+
+def test_csv_list_field_invalid_type():
+    mapper = RecordCombiningMapper(record_mapper=ListWithStringsModel)
+    with pytest.raises(ValidationError, match="value is not a valid integer"):
+        mapper.map_records([{
+            'id': 1,
+            'list1': 'a,b',
+            'list2': '1,2'
+        }, {
+            'id': 1,
+            'list1': 'c,d',
+            'list2': '3,a'
+        }])

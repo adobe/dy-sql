@@ -189,20 +189,25 @@ Lists, sets, and dicts (when using the RecordCombiningMapper) require additional
     from dysql.pydantic_mappers import DbMapResultModel
 
     class ComplexDbModel(DbMapResultModel):
+        # if any data has been aggregated or saved into a string as a comma delimited list, this will convert to a list
+        # NOTE this only does simple splitting and is not fully rfc4180 compatible
+        _csv_list_fields: Set[str] = {'list_from_string'}
         # List fields (type does not matter)
-        _list_fields: Set[str] = ['list1']
+        _list_fields: Set[str] = {'list1'}
         # Set fields (type does not matter)
-        _set_fields: Set[str] = ['set1']
+        _set_fields: Set[str] = {'set1'}
         # Dictionary key fields as DB field name => model field name
         _dict_key_fields: Dict[str, str] = {'key1': 'dict1', 'key2': 'dict2'}
         # Dictionary value fields as model field name => DB field name (this is reversed from _dict_key_fields!)
         _dict_value_mappings: Dict[str, str] = {'dict1': 'val1', 'dict2': 'val2'}
 
         id: int = None
+        list_from_string: List[str]
         list1: List[str]
         set1: Set[str] = set()
         dict1: Dict[str, Any] = {}
         dict2: Dict[str, int] = {}
+
 
 In this case, the ``_`` prefixed properties tell the model which fields should be treated differently when combining
 multiple rows into a single object. For an example of how this works with database rows, see the

@@ -10,6 +10,7 @@ from typing import Any, Dict, Set
 
 import sqlalchemy
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
+from pydantic.error_wrappers import ValidationError
 
 from .mappers import DbMapResultBase
 
@@ -26,7 +27,8 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
     Additionally, lists, sets, and dicts will ignore null values from the database. Therefore you must provide default
     values for these fields when used or else validation will fail.
     """
-
+    # List fields that are aggregated into a string of comma seperated values with basic string splitting on commas
+    _csv_list_fields: Set[str] = set()
     # List fields (type does not matter)
     _list_fields: Set[str] = set()
     # Set fields (type does not matter)
@@ -71,10 +73,26 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
         else:
             current_dict[model_field_name] = {record[field]: record[value_field]}
 
+    def _map_list_from_string(self, current_dict: dict, record: sqlalchemy.engine.Row, field: str):
+        list_string = record[field]
+        if list_string and isinstance(list_string, str):
+            values_from_string = list_string.split(',')
+
+            if self._has_been_mapped():
+                # validates the list we are expecting and updates all fields to the expected type or throws error
+                model_field = self.__fields__[field]
+                values, errors_ = model_field.validate(values_from_string, current_dict, loc=model_field.alias)
+                if errors_:
+                    raise ValidationError(errors_, DbMapResultModel)
+                current_dict[field].extend(values)
+            else:
+                current_dict[field] = values_from_string
+
     def map_record(self, record: sqlalchemy.engine.Row) -> None:
         """
         Implementation of map_record that handles the special "_" prefixed fields listed at the top of this class.
         The following rules are used:
+          - If it is in the _csv_list_fields and is not none, extend the existing list
           - If it is in the _list_fields and is not none, append it to the field specified
           - If it is in the _set_fields and is not none, add it to the field specified
           - If it is in the _dict_key_fields and is not none, add it to the field specified along with the value
@@ -87,6 +105,8 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
         for field in record.keys():
             if field in self._list_fields:
                 self._map_list(current_dict, record, field)
+            elif field in self._csv_list_fields:
+                self._map_list_from_string(current_dict, record, field)
             elif field in self._set_fields:
                 self._map_set(current_dict, record, field)
             elif field in self._dict_key_fields:

@@ -17,6 +17,7 @@ import sqlalchemy
 
 LOGGER = logging.getLogger(__name__)
 
+
 class MapperError(Exception):
     pass
 
