@@ -160,8 +160,10 @@ def sqlexists(isolation_level='READ_COMMITTED'):
                 query, params = get_query_data(data)
 
                 query = query.lstrip()
-                if not query.startswith('SELECT EXISTS'):
-                    query = f'SELECT EXISTS ( {query} )'
+                if query.startswith('SELECT EXISTS'):
+                    query = query.replace('SELECT EXISTS', 'SELECT 1 WHERE EXISTS')
+                if not query.startswith('SELECT 1 WHERE EXISTS'):
+                    query = f'SELECT 1 WHERE EXISTS ( {query} )'
                 result = conn_manager.execute_query(query, params).scalar()
                 return result == 1
 
