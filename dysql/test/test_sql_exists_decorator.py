@@ -21,12 +21,15 @@ FALSE_QUERY = 'SELECT 1 from false_table '
 FALSE_QUERY_PARAMS = 'SELECT 1 from table where key=:key'
 TRUE_PARAMS = {'key': 123}
 FALSE_PARAMS = {'key': 456}
-BASE_EXISTS_QUERY = 'SELECT EXISTS ( {} )'
+SELECT_EXISTS_QUERY = 'SELECT 1 WHERE EXISTS ( {} )'
+SELECT_EXISTS_NO_WHERE_QUERY = 'SELECT EXISTS ( {} )'
 EXISTS_QUERIES = {
-    'true': BASE_EXISTS_QUERY.format(TRUE_QUERY),
-    'false': BASE_EXISTS_QUERY.format(FALSE_QUERY),
-    'true_params': BASE_EXISTS_QUERY.format(TRUE_QUERY_PARAMS),
-    'false_params': BASE_EXISTS_QUERY.format(FALSE_QUERY_PARAMS),
+    'true': SELECT_EXISTS_QUERY.format(TRUE_QUERY),
+    'false': SELECT_EXISTS_QUERY.format(FALSE_QUERY),
+    'true_params': SELECT_EXISTS_QUERY.format(TRUE_QUERY_PARAMS),
+    'false_params': SELECT_EXISTS_QUERY.format(FALSE_QUERY_PARAMS),
+    'true_no_where': SELECT_EXISTS_NO_WHERE_QUERY.format(TRUE_QUERY),
+    'false_no_where': SELECT_EXISTS_NO_WHERE_QUERY.format(FALSE_QUERY)
 }
 
 
@@ -59,7 +62,6 @@ def test_exists_query_contains_with_exists_true():
     """
     this helps to test that if someone adds an exists statement, we don't add the exists
     exists(exists()) will always give a 'true' result
-    :return:
     """
     # should match against the same query, should still match
     assert _exists_specified('true')
@@ -69,20 +71,46 @@ def test_exists_query_contains_with_exists_false():
     """
     this helps to test that if someone adds an exists statement, we don't add the exists
     exists(exists()) will always give a 'true' result
-    :return:
     """
     # should match against the same query, should still match
     assert not _exists_specified('false')
+
+
+def test_exists_without_where_true():
+    """
+    this helps avoid an issue discovered when using the 'utf8' charset, some queries with the exists
+    query would fail to decode the '0' returned with a query as just `SELECT EXISTS` but work as expected
+    when using `SELECT 1 WHERE EXISTS`
+    """
+    assert _select_exists_no_where_true()
+
+
+def test_exists_witohut_where_false():
+    """
+    this helps avoid an issue discovered when using the 'utf8' charset, some queries with the exists
+    query would fail to decode the '0' returned with a query as just `SELECT EXISTS` but work as expected
+    when using `SELECT 1 WHERE EXISTS`
+    """
+    assert not _select_exists_no_where_false()
 
 
 def test_exists_query_starts_with_exists_handles_whitespace():
     """
     this helps to test that if someone adds an exists statement, we don't add the exists
     exists(exists()) will always give a 'true' result
-    :return:
     """
     # should trim the whitespace and match appropiately
     assert _exists_whitespace()
+
+
+@sqlexists()
+def _select_exists_no_where_false():
+    return QueryData(EXISTS_QUERIES['false_no_where'])
+
+
+@sqlexists()
+def _select_exists_no_where_true():
+    return QueryData(EXISTS_QUERIES['true_no_where'])
 
 
 @sqlexists()
