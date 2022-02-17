@@ -10,7 +10,6 @@ dist/
 *.swp
 pytest_cache
 
+dysql/version.py
 docker-compose.env
 docker-compose.yml
-
-
