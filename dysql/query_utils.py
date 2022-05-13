@@ -254,7 +254,7 @@ def __validate_keys_clean_query(query, template_params):
         validated_keys.append(key)
         missing_keys = []
 
-        #validate
+        # validate
         if template_params is None or template_params.get(key) is None:
             missing_keys.append(key)
         elif key == 'values' and len(template_params.get(key)) == 0:

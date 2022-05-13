@@ -337,11 +337,11 @@ class TestSqlUpdateDecorator:
         """
         yield QueryData(
             "INSERT some {values__in}",
-            template_params=_get_template_params('values__in',multiple_values)
+            template_params=_get_template_params('values__in', multiple_values)
         )
         yield QueryData(
             "INSERT some more {values__other}",
-            template_params=_get_template_params('values__other',other_values)
+            template_params=_get_template_params('values__other', other_values)
         )
 
     @staticmethod
@@ -370,5 +370,5 @@ def _get_template_params(key, values):
     :return: a keyed list of tuples or mariadbmaps
     '''
     if isinstance(values[0], DbMapResult):
-        return { key : values }
-    return { key: [ (v['id'],v['value']) for v in values]}
+        return {key: values}
+    return {key: [(v['id'], v['value']) for v in values]}

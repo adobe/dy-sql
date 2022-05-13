@@ -17,7 +17,7 @@ class TestTemplatesGenerators:
     number_values = [1, 2, 3, 4]
     string_values = ['1', '2', '3', '4']
     insert_values = [('ironman', 1), ('batman', 2)]
-    tuple_values = [(1,2), (3,4)]
+    tuple_values = [(1, 2), (3, 4)]
     query = 'column_a IN ( :column_a_0, :column_a_1, :column_a_2, :column_a_3 )'
 
     query_with_list_of_tuples = \
