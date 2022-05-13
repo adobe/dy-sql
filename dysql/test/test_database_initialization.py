@@ -12,7 +12,7 @@ from unittest import mock
 import pytest
 
 import dysql.connections
-from dysql import sqlquery, DBNotPreparedError, set_default_connection_parameters, QueryData
+from dysql import sqlquery, DBNotPreparedError, set_default_connection_parameters, QueryData, set_database_init_hook
 from dysql.test import mock_create_engine_fixture, setup_mock_engine
 
 _ = mock_create_engine_fixture
@@ -50,6 +50,13 @@ def fixture_mock_engine(mock_create_engine):
         dysql.databases.reset_current_database()
 
 
+@pytest.fixture(autouse=True)
+def fixture_reset_init_hook():
+    yield
+    if hasattr(dysql.databases.Database, 'hook_method'):
+        delattr(dysql.databases.Database, 'hook_method')
+
+
 def test_nothing_set():
     dysql.databases._DEFAULT_CONNECTION_PARAMS.clear()
     with pytest.raises(DBNotPreparedError) as error:
@@ -79,6 +86,32 @@ def test_minimal_credentials(mock_engine):
 
     mock_engine.connect().execution_options().execute.return_value = []
     query()
+
+
+def test_init_hook(mock_engine):
+    init_hook = mock.MagicMock()
+    set_database_init_hook(init_hook)
+    set_default_connection_parameters('h', 'u', 'p', 'd')
+
+    mock_engine.connect().execution_options().execute.return_value = []
+    query()
+    init_hook.assert_called_once_with('d', mock_engine)
+
+
+@pytest.mark.skipif('3.6' in sys.version, reason='set_current_database is not supported on python 3.6')
+def test_init_hook_multiple_databases(mock_engine):
+    init_hook = mock.MagicMock()
+    set_database_init_hook(init_hook)
+    set_default_connection_parameters('h', 'u', 'p', 'd1')
+
+    mock_engine.connect().execution_options().execute.return_value = []
+    query()
+    dysql.databases.set_current_database('d2')
+    query()
+    assert init_hook.call_args_list == [
+        mock.call('d1', mock_engine),
+        mock.call('d2', mock_engine),
+    ]
 
 
 def test_current_database_default(mock_engine, mock_create_engine):
