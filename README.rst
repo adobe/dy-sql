@@ -30,6 +30,7 @@ Component Breakdown
   current async context (not thread), this is especially useful for multitenant applications
 * **reset_current_database** - (only supported on Python 3.7+) helper method to reset the current database after
   ``set_current_database`` has been used in an async context
+* **set_database_init_hook** - sets a method to call whenever a new database is initialized
 * **QueryData** - a class that may be returned or yielded from ``sql*`` decorated methods which
   contains query information
 * **DbMapResult** - base class that can be used when selecting data that helps to map the results of a
@@ -64,9 +65,30 @@ using the ``set_default_connection_parameters`` method.
 Note: the keyword arguments are not required and have standard default values,
 the port for example defaults to 3306
 
+Database Init Hook
+==================
+At times, it is necessary to perform post-initialization tasks on the database engine after it has been created.
+The ``set_database_init_hook`` method may be used in this case. As an example, to instrument the engine using
+``opentelemetry-instrumentation-sqlalchemy``, the following code may be used:
+
+.. code-block:: python
+
+    from typing import Optional
+    # Used for type-hints only
+    import sqlalchemy
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+    from dysql import set_database_init_hook
+
+    def _instrument_engine(database_name: Optional[str], engine: sqlalchemy.engine.Engine) -> None:
+        # The database name is unused in this case
+        _ = database_name
+        SQLAlchemyInstrumentor().instrument(engine=engine)
+
+    set_database_init_hook(_instrument_engine)
+
+
 Multitenancy
 ============
-
 In some applications, it may be useful to set a database other than the default database in order to support
 database-per-tenant configurations. This may be done using the ``set_current_database`` and ``reset_current_database``
 methods.

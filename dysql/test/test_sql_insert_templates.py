@@ -67,17 +67,19 @@ def test_insert_multiple_values(mock_engine):
         "( :values__users_1_0, :values__users_1_1 ) "
     )
     _verify_query_args(
-        mock_engine, {
-        'values__users_0_0': 'Tom',
-        'values__users_0_1': 'tom@adobe.com',
-        'values__users_1_0': 'Jerry',
-        'values__users_1_1': 'jerry@adobe.com'
-    })
+        mock_engine,
+        {
+            'values__users_0_0': 'Tom',
+            'values__users_0_1': 'tom@adobe.com',
+            'values__users_1_0': 'Jerry',
+            'values__users_1_1': 'jerry@adobe.com'
+        }
+    )
 
 
 @pytest.mark.parametrize('args', [
     ([('bob', 'bob@email.com')]),
-    ([('bob', 'bob@email.com'), ('tom', 'tom@email.com'),]),
+    ([('bob', 'bob@email.com'), ('tom', 'tom@email.com')]),
     None,
     (),
 ])

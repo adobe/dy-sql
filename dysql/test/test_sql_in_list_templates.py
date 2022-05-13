@@ -127,8 +127,7 @@ def test_list_in_multiple_lists_one_empty(mock_engine):
 
 def test_list_in_multiple_lists_one_missing():
     with pytest.raises(dysql.query_utils.ListTemplateException, match="['in__column_a']"):
-        _query("SELECT * FROM table WHERE {in__column_a} OR {in__column_b} ",
-                    template_params={'in__column_b': [1, 2]})
+        _query("SELECT * FROM table WHERE {in__column_a} OR {in__column_b} ", template_params={'in__column_b': [1, 2]})
 
 
 def test_list_in_multiple_lists_all_missing():
@@ -155,8 +154,7 @@ def test_list_gives_template_space_before(mock_engine):
 
 
 def test_list_gives_template_space_after(mock_engine):
-    _query("SELECT * FROM table WHERE {in__space}AND other_condition = 1",
-                template_params={'in__space': [9, 8]})
+    _query("SELECT * FROM table WHERE {in__space}AND other_condition = 1", template_params={'in__space': [9, 8]})
     _verify_query(
         mock_engine,
         "SELECT * FROM table WHERE space IN ( :in__space_0, :in__space_1 ) AND other_condition = 1"
@@ -164,8 +162,7 @@ def test_list_gives_template_space_after(mock_engine):
 
 
 def test_list_gives_template_space_before_and_after(mock_engine):
-    _query("SELECT * FROM table WHERE{in__space}AND other_condition = 1",
-                template_params={'in__space': [9, 8]})
+    _query("SELECT * FROM table WHERE{in__space}AND other_condition = 1", template_params={'in__space': [9, 8]})
     _verify_query(
         mock_engine,
         "SELECT * FROM table WHERE space IN ( :in__space_0, :in__space_1 ) AND other_condition = 1"
@@ -194,10 +191,12 @@ def test_template_handles_table_qualifier(mock_engine):
         "SELECT * FROM table WHERE table.column IN ( :in__table_column_0, :in__table_column_1 ) "
     )
     _verify_query_args(
-        mock_engine, {
-        'in__table_column_0': 1,
-        'in__table_column_1': 2
-    })
+        mock_engine,
+        {
+            'in__table_column_0': 1,
+            'in__table_column_1': 2
+        }
+    )
 
 
 def test_template_handles_multiple_table_qualifier(mock_engine):
@@ -211,12 +210,14 @@ def test_template_handles_multiple_table_qualifier(mock_engine):
         "AND other_column NOT IN ( :not_in__other_column_0, :not_in__other_column_1 ) "
     )
     _verify_query_args(
-        mock_engine, {
-        'in__table_column_0': 1,
-        'in__table_column_1': 2,
-        'not_in__other_column_0': 'a',
-        'not_in__other_column_1': 'b',
-    })
+        mock_engine,
+        {
+            'in__table_column_0': 1,
+            'in__table_column_1': 2,
+            'not_in__other_column_0': 'a',
+            'not_in__other_column_1': 'b',
+        }
+    )
 
 
 def test_empty_in_contains_whitespace(mock_engine):
@@ -237,8 +238,7 @@ def test_multiple_templates_same_column_diff_table(mock_engine):
 
     # writing each of these queries out to help see what we expect compared to
     # the query we actually sent
-    _query("SELECT * FROM table WHERE {in__table.status} AND {in__other_table.status}",
-                template_params=template_params)
+    _query("SELECT * FROM table WHERE {in__table.status} AND {in__other_table.status}", template_params=template_params)
     expected_query = "SELECT * FROM table WHERE table.status IN ( :in__table_status_0, :in__table_status_1, " \
                      ":in__table_status_2 ) AND other_table.status IN ( :in__other_table_status_0, " \
                      ":in__other_table_status_1 ) "

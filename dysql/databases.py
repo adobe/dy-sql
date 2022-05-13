@@ -8,7 +8,7 @@ with the terms of the Adobe license agreement accompanying it.
 
 import logging
 import sys
-from typing import Optional
+from typing import Callable, Optional
 
 import sqlalchemy
 
@@ -24,6 +24,16 @@ try:
     CURRENT_DATABASE_VAR = contextvars.ContextVar("dysql_current_database", default='')
 except ImportError:
     CURRENT_DATABASE_VAR = None
+
+
+def set_database_init_hook(hook_method: Callable[[Optional[str], sqlalchemy.engine.Engine], None]) -> None:
+    """
+    Sets an initialization hook whenever a new database is initialized. This method will receive the database name
+    (may be none) and the sqlalchemy engine as parameters.
+
+    :param hook_method: the hook method
+    """
+    Database.set_init_hook(hook_method)
 
 
 def is_set_current_database_supported() -> bool:
@@ -117,8 +127,15 @@ class Database:
         # Engine is lazy-initialized
         self._engine: Optional[sqlalchemy.engine.Engine] = None
 
+    @classmethod
+    def set_init_hook(
+            cls,
+            hook_method: Callable[[Optional[str], sqlalchemy.engine.Engine], None],
+    ) -> None:
+        cls.hook_method = hook_method
+
     @property
-    def engine(self):
+    def engine(self) -> sqlalchemy.engine.Engine:
         if not self._engine:
             user = _DEFAULT_CONNECTION_PARAMS.get('user')
             password = _DEFAULT_CONNECTION_PARAMS.get('password')
@@ -134,6 +151,11 @@ class Database:
                 echo=_DEFAULT_CONNECTION_PARAMS.get('echo_queries'),
                 pool_pre_ping=True,
             )
+            hook_method: Optional[Callable[[Optional[str], sqlalchemy.engine.Engine], None]] = \
+                getattr(self.__class__, 'hook_method', None)
+            if hook_method:
+                hook_method(self.database, self._engine)
+
         return self._engine
 
 
