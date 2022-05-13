@@ -5,7 +5,7 @@ import types
 from setuptools import setup, find_packages
 
 
-BASE_VERSION = '1.12'
+BASE_VERSION = '1.13'
 SOURCE_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
