@@ -169,7 +169,7 @@ class MariaDbTestManager(DbTestManagerBase):
             echo_queries: bool = False,
             keep_db: bool = False,
             pool_size=3,
-            charset=None
+            charset='utf8'
     ):  # pylint: disable=too-many-arguments
         """
         :param db_name: the name you want for your test database
