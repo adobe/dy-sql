@@ -51,7 +51,7 @@ class ListWithStringsModel(DbMapResultModel):
 
 
 class JsonModel(DbMapResultModel):
-    _json_fields: Set[str] = {'json1','json2'}
+    _json_fields: Set[str] = {'json1', 'json2'}
 
     id: int
     json1: dict
@@ -198,20 +198,20 @@ def test_json_field():
             }
         })
     }]).dict() == {
-               'id': 1,
-               'json1': {
-                   'a': 1,
-                   'b': 2,
-                   'c': {
-                       'x': 10,
-                       'y': 9,
-                       'z': {
-                           'deep': 'value'
-                       }
+           'id': 1,
+           'json1': {
+               'a': 1,
+               'b': 2,
+               'c': {
+                   'x': 10,
+                   'y': 9,
+                   'z': {
+                       'deep': 'value'
                    }
-               },
-               'json2': None
-           }
+               }
+           },
+           'json2': None
+       }
 
 
 def test_invalid_json():
