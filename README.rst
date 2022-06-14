@@ -9,7 +9,7 @@ The decorators are a way to help us map our data in python to SQL queries and vi
 When we select, insert, update, or delete the queries, we pass the data we want
 to insert along with a well defined query.
 
-This is designed to be done with minimal setup and coding. You need to specify 
+This is designed to be done with minimal setup and coding. You need to specify
 the database connection parameters and annotate any SQL queries/updates you have with the
 decorator that fits your needs.
 
@@ -204,7 +204,7 @@ Most fields will "just work" as defined by the type annotations.
 Mapping a record onto this class will automatically convert types as defined by the type annotations. No ``map_record``
 method needs to be defined since the pydantic model has everything necessary to map database fields.
 
-Lists, sets, and dicts (when using the RecordCombiningMapper) require additional configuration on the model class.
+Lists, sets, dicts, csv strings, and json strings (when using the RecordCombiningMapper) require additional configuration on the model class.
 
 .. code-block:: python
 
@@ -222,6 +222,8 @@ Lists, sets, and dicts (when using the RecordCombiningMapper) require additional
         _dict_key_fields: Dict[str, str] = {'key1': 'dict1', 'key2': 'dict2'}
         # Dictionary value fields as model field name => DB field name (this is reversed from _dict_key_fields!)
         _dict_value_mappings: Dict[str, str] = {'dict1': 'val1', 'dict2': 'val2'}
+        # JSON string fields. Type can be any dictionary type but for larger json objects its safe to stay with `dict`
+        _json_fields: Set[str] = {'json1', 'json2'}
 
         id: int = None
         list_from_string: List[str]
@@ -229,7 +231,15 @@ Lists, sets, and dicts (when using the RecordCombiningMapper) require additional
         set1: Set[str] = set()
         dict1: Dict[str, Any] = {}
         dict2: Dict[str, int] = {}
+        json1: dict
+        json2: dict
 
+.. note::
+
+    csv strings can be useful in queries where you want to group by an id and then ``group_concat`` some field
+
+    json strings are a handy way to extract json blobs into a python dictionary for ease of use without manually processing
+    each field everytime you need something.
 
 In this case, the ``_`` prefixed properties tell the model which fields should be treated differently when combining
 multiple rows into a single object. For an example of how this works with database rows, see the

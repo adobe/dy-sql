@@ -5,12 +5,13 @@ All Rights Reserved.
 NOTICE: Adobe permits you to use, modify, and distribute this file in accordance
 with the terms of the Adobe license agreement accompanying it.
 """
-
+import json
+from json import JSONDecodeError
 from typing import Any, Dict, Set
 
 import sqlalchemy
 from pydantic import BaseModel  # pylint: disable=no-name-in-module
-from pydantic.error_wrappers import ValidationError
+from pydantic.error_wrappers import ValidationError, ErrorWrapper
 
 from .mappers import DbMapResultBase
 
@@ -29,6 +30,8 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
     """
     # List fields that are aggregated into a string of comma seperated values with basic string splitting on commas
     _csv_list_fields: Set[str] = set()
+    # List field that are json objects
+    _json_fields: Set[str] = set()
     # List fields (type does not matter)
     _list_fields: Set[str] = set()
     # Set fields (type does not matter)
@@ -42,6 +45,16 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
     def create_instance(cls, *args, **kwargs) -> 'DbMapResultModel':
         # Uses the construct method to prevent validation when mapping results
         return cls.construct(*args, **kwargs)
+
+    def _map_json(self, current_dict: dict, record: sqlalchemy.engine.Row, field: str):
+        model_field = self.__fields__[field]
+        if not self._has_been_mapped():
+            try:
+                current_dict[field] = json.loads(record[field])
+            except JSONDecodeError as exc:
+                return ErrorWrapper(ValueError(
+                    f'Invalid JSON given to {model_field.alias}', exc), loc=model_field.alias)
+        return None
 
     def _map_list(self, current_dict: dict, record: sqlalchemy.engine.Row, field: str):
         if record[field] is None:
@@ -101,12 +114,17 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
           - Remove all DB fields that are present in _dict_value_mappings since they were likely added above
         :param record: the DB record
         """
+        errors = []
         current_dict: dict = self.__dict__
         for field in record.keys():
             if field in self._list_fields:
                 self._map_list(current_dict, record, field)
             elif field in self._csv_list_fields:
                 self._map_list_from_string(current_dict, record, field)
+            elif field in self._json_fields:
+                error = self._map_json(current_dict, record, field)
+                if error:
+                    errors.append(error)
             elif field in self._set_fields:
                 self._map_set(current_dict, record, field)
             elif field in self._dict_key_fields:
@@ -116,6 +134,8 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
                 if not self._has_been_mapped():
                     current_dict[field] = record[field]
 
+        if errors:
+            raise ValidationError(errors, DbMapResultModel)
         # Remove all dict value fields (if present)
         for db_field in self._dict_value_mappings.values():
             current_dict.pop(db_field, None)
