@@ -225,3 +225,18 @@ def test_invalid_json():
     assert len(excinfo.value.args[0]) == 2
     assert excinfo.value.args[0][0].exc.args[0] == 'Invalid JSON given to json1'
     assert excinfo.value.args[0][1].exc.args[0] == 'Invalid JSON given to json2'
+
+
+def test_json_none():
+    mapper = SingleRowMapper(record_mapper=JsonModel)
+    assert mapper.map_records([{
+        'id': 1,
+        'json1': '{ "first": "value" }',
+        'json2': None
+    }]).dict() == {
+        'id': 1,
+        'json1': {
+            'first': 'value',
+        },
+        'json2': None
+    }
