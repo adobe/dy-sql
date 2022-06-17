@@ -50,7 +50,9 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
         model_field = self.__fields__[field]
         if not self._has_been_mapped():
             try:
-                current_dict[field] = json.loads(record[field])
+                potential_json_data = record[field]
+                if potential_json_data:
+                    current_dict[field] = json.loads(record[field])
             except JSONDecodeError as exc:
                 return ErrorWrapper(ValueError(
                     f'Invalid JSON given to {model_field.alias}', exc), loc=model_field.alias)
