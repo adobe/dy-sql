@@ -92,16 +92,16 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
         list_string = record[field]
         if list_string and isinstance(list_string, str):
             values_from_string = list_string.split(',')
+            model_field = self.__fields__[field]
+            # pre-validates the list we are expecting because we want to ensure all records are validated
+            values, errors_ = model_field.validate(values_from_string, current_dict, loc=model_field.alias)
+            if errors_:
+                raise ValidationError(errors_, DbMapResultModel)
 
-            if self._has_been_mapped():
-                # validates the list we are expecting and updates all fields to the expected type or throws error
-                model_field = self.__fields__[field]
-                values, errors_ = model_field.validate(values_from_string, current_dict, loc=model_field.alias)
-                if errors_:
-                    raise ValidationError(errors_, DbMapResultModel)
+            if self._has_been_mapped() and current_dict[field]:
                 current_dict[field].extend(values)
             else:
-                current_dict[field] = values_from_string
+                current_dict[field] = values
 
     def map_record(self, record: sqlalchemy.engine.Row) -> None:
         """
