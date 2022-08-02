@@ -175,7 +175,7 @@ def test_csv_list_field_without_mapping_ignored():
     mapper = SingleRowMapper(record_mapper=ListWithStringsModel)
     assert mapper.map_records([{
         'id': 1,
-        'list1': 'a,b,c,d',
+        'list1': 'a,b, c,d',
         'list2': '1,2,3,4',
         'list3': 'x,y,z'
     }]).raw() == {
