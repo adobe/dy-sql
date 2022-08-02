@@ -154,11 +154,28 @@ def test_csv_list_field_multiple_records_duplicates():
            }
 
 
+def test_csv_list_field_none_in_first_record():
+    mapper = RecordCombiningMapper(record_mapper=ListWithStringsModel)
+    assert mapper.map_records([{
+        'id': 1,
+        'list1': 'a,b,c,d',
+        'list2': None
+    }, {
+        'id': 1,
+        'list1': 'e,f,g',
+        'list2': '1,2,3,4'
+    }])[0].raw() == {
+               'id': 1,
+               'list1': ['a', 'b', 'c', 'd', 'e', 'f', 'g'],
+               'list2': [1, 2, 3, 4]
+           }
+
+
 def test_csv_list_field_without_mapping_ignored():
     mapper = SingleRowMapper(record_mapper=ListWithStringsModel)
     assert mapper.map_records([{
         'id': 1,
-        'list1': 'a,b,c,d',
+        'list1': 'a,b, c,d',
         'list2': '1,2,3,4',
         'list3': 'x,y,z'
     }]).raw() == {
