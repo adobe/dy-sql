@@ -61,6 +61,9 @@ class DbTestManagerBase(abc.ABC):
 
     @staticmethod
     def _is_running_in_docker():
+        if os.path.exists('/.dockerenv'):
+            return True
+
         if os.path.exists('/proc/1/cgroup'):
             with open('/proc/1/cgroup', 'rt', encoding='utf8') as fobj:
                 contents = fobj.read()
