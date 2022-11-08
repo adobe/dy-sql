@@ -18,6 +18,7 @@ from dysql import (
 from dysql.pydantic_mappers import DbMapResultModel
 
 
+
 class ConversionDbModel(DbMapResultModel):
     id: int
     field_str: str
@@ -58,6 +59,13 @@ class JsonModel(DbMapResultModel):
     json2: Optional[dict]
 
 
+class MultiKeyModel(DbMapResultModel):
+    _list_fields = {'c'}
+    a: int
+    b: str
+    c: List[str]
+
+
 def _unwrap_results(results):
     return [r.raw() for r in results]
 
@@ -92,6 +100,23 @@ def test_complex_object_record_combining():
                    'dict2': {},
                },
            ]
+
+
+def test_record_combining_multi_column_id():
+    mapper = RecordCombiningMapper(record_mapper=MultiKeyModel, id_columns=['a', 'b'])
+    assert len(mapper.map_records([])) == 0
+    assert _unwrap_results(mapper.map_records([
+        {'a': 1, 'b': 'test', 'c': 'one'},
+        {'a': 1, 'b': 'test', 'c': 'two'},
+        {'a': 1, 'b': 'test', 'c': 'three'},
+        {'a': 2, 'b': 'test', 'c': 'one'},
+        {'a': 2, 'b': 'test', 'c': 'two'},
+        {'a': 1, 'b': 'othertest', 'c': 'one'},
+    ])) == [
+        {'a': 1, 'b': 'test', 'c': ['one', 'two', 'three']},
+        {'a': 2, 'b': 'test', 'c': ['one', 'two']},
+        {'a': 1, 'b': 'othertest', 'c': ['one']},
+    ]
 
 
 def test_complex_object_with_null_values():

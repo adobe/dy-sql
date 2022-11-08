@@ -10,7 +10,7 @@ with the terms of the Adobe license agreement accompanying it.
 import abc
 import logging
 from collections import OrderedDict, defaultdict
-from typing import Any, Optional, Type
+from typing import Any, Optional, Type, List
 
 import sqlalchemy
 
@@ -128,8 +128,34 @@ class RecordCombiningMapper(BaseMapper):
     unique ``id`` value.
     """
 
-    def __init__(self, record_mapper: Optional[Type[DbMapResultBase]] = DbMapResult):
+    def __init__(self, record_mapper: Optional[Type[DbMapResultBase]] = DbMapResult, id_columns: List[str] = None):
+        """
+        :param id_columns: id columns can be one or more columns that should uniquely identify a record so when we are
+        adding to lists when we expect a list of data for a single record.
+                    * Defaults to the 'id' column if nothing else is specified.
+                    * If each record should be a new record, pass in an empty array
+        :param record_mapper: what we are mapping records to.
+        """
+        self.id_columns = ['id']
+        if id_columns is not None:
+            self.id_columns = id_columns
         self.record_mapper = record_mapper
+
+    def _get_lookup(self, record):
+        """
+        Return a lookup key based on a set of defined columns
+        :param record:
+        :return:
+        """
+        if not self.id_columns:
+            return None
+        values = []
+        for column in self.id_columns:
+            if column not in record:
+                # returning none because we don't want to make assumptions about how to handle a complex key
+                return None
+            values.append(record[column])
+        return hash(tuple(values))
 
     def map_records(self, records: sqlalchemy.engine.CursorResult) -> Any:
         if not self.record_mapper:
@@ -138,11 +164,11 @@ class RecordCombiningMapper(BaseMapper):
         current_results = OrderedDict()
         current_num = 0
         for record in records:
-            if 'id' in record:
-                record_id = record['id']
-                if current_results.get(record_id) is None:
-                    current_results[record_id] = self.record_mapper.create_instance()
-                current_results[record_id].map_record(record)
+            lookup = self._get_lookup(record)
+            if lookup:
+                if current_results.get(lookup) is None:
+                    current_results[lookup] = self.record_mapper.create_instance()
+                current_results[lookup].map_record(record)
             else:
                 current_results[current_num] = self.record_mapper.create_instance()
                 current_results[current_num].map_record(record)
