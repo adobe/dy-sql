@@ -258,7 +258,9 @@ mapper can combine multiple records into a single result if there is an
 ``id`` field present in each record. Mappers available:
 
 * ``RecordCombiningMapper`` (default) - returns a list of results, with multiple records with the same ``id`` value
-  being combined into a single result. An optional ``record_mapper`` value may be passed to the constructor to change
+  being combined into a single result. By default the column ``id`` is used but an array of column names can be used
+  to create a unique key lookup for combining records. The id value can be set as one or more columns in the mapper.
+  An optional ``record_mapper`` value may be passed to the constructor to change
   how records are mapped to result. By default the ``record_mapper`` used is ``DbMapResult``.
 * ``SingleRowMapper`` - returns an object for the first record from the database (even if multiple records are
   returned). An optional ``record_mapper`` value may be passed to the constructor to change how this first record is
