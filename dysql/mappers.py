@@ -131,24 +131,27 @@ class RecordCombiningMapper(BaseMapper):
     def __init__(self, record_mapper: Optional[Type[DbMapResultBase]] = DbMapResult, id_columns: List[str] = None):
         """
         :param id_columns: id columns can be one or more columns that should uniquely identify a record so when we are
-        adding to lists when we expect a list of data for a single record.
-                    * Defaults to the 'id' column if nothing else is specified.
-                    * If each record should be a new record, pass in an empty array
+        adding to lists when we expect a list of data for a single record. Defaults to None
         :param record_mapper: what we are mapping records to.
         """
-        self.id_columns = ['id']
-        if id_columns is not None:
-            self.id_columns = id_columns
+        self.id_columns = id_columns
         self.record_mapper = record_mapper
 
     def _get_lookup(self, record):
         """
-        Return a lookup key based on a set of defined columns
+        Return a lookup key based on a set of defined columns. if the id_columns aren't set we will look for an 'id'
+        column to maintain older expectations.
         :param record:
-        :return:
+        :return: the value of the 'id' colum if id_columns are not set. the hash of the values from the id_colums.
+
+                Note: if the id_columns contain an invalid column, logs a warning and returns None
         """
         if not self.id_columns:
+            # preserving older expectations
+            if 'id' in record:
+                return record['id']
             return None
+
         values = []
         for column in self.id_columns:
             if column not in record:
