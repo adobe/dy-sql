@@ -18,7 +18,6 @@ from dysql import (
 from dysql.pydantic_mappers import DbMapResultModel
 
 
-
 class ConversionDbModel(DbMapResultModel):
     id: int
     field_str: str

@@ -152,6 +152,8 @@ class RecordCombiningMapper(BaseMapper):
         values = []
         for column in self.id_columns:
             if column not in record:
+                LOGGER.warning(f'There was an invalid column specified in {self.id_columns}. '
+                               f'Because of this id_columns will not be used for a unique key.')
                 # returning none because we don't want to make assumptions about how to handle a complex key
                 return None
             values.append(record[column])
