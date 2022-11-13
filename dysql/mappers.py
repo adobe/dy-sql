@@ -10,7 +10,7 @@ with the terms of the Adobe license agreement accompanying it.
 import abc
 import logging
 from collections import OrderedDict, defaultdict
-from typing import Any, Optional, Type, List
+from typing import Any, Optional, Type
 
 import sqlalchemy
 
@@ -23,6 +23,12 @@ class MapperError(Exception):
 
 
 class DbMapResultBase(abc.ABC):
+    _key_columns = ['id']
+
+    @classmethod
+    def get_key_columns(cls):
+        return cls._key_columns
+
     @classmethod
     def create_instance(cls, *args, **kwargs) -> 'DbMapResultBase':
         """
@@ -128,13 +134,10 @@ class RecordCombiningMapper(BaseMapper):
     unique ``id`` value.
     """
 
-    def __init__(self, record_mapper: Optional[Type[DbMapResultBase]] = DbMapResult, id_columns: List[str] = None):
+    def __init__(self, record_mapper: Optional[Type[DbMapResultBase]] = DbMapResult):
         """
-        :param id_columns: id columns can be one or more columns that should uniquely identify a record so when we are
-        adding to lists when we expect a list of data for a single record. Defaults to None
         :param record_mapper: what we are mapping records to.
         """
-        self.id_columns = id_columns
         self.record_mapper = record_mapper
 
     def _get_lookup(self, record):
@@ -146,16 +149,15 @@ class RecordCombiningMapper(BaseMapper):
 
                 Note: if the id_columns contain an invalid column, logs a warning and returns None
         """
-        if not self.id_columns:
+        key_columns = self.record_mapper.get_key_columns()
+        if not key_columns:
             # preserving older expectations
-            if 'id' in record:
-                return record['id']
             return None
 
         values = []
-        for column in self.id_columns:
+        for column in key_columns:
             if column not in record:
-                LOGGER.warning(f'There was an invalid column specified in {self.id_columns}. '
+                LOGGER.warning(f'There was an invalid column specified in {key_columns}. '
                                f'Because of this id_columns will not be used for a unique key.')
                 # returning none because we don't want to make assumptions about how to handle a complex key
                 return None

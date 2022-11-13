@@ -257,17 +257,23 @@ change the behavior of what is returned from a decorated method. The default
 mapper can combine multiple records into a single result if there is an
 ``id`` field present in each record. Mappers available:
 
-* ``RecordCombiningMapper`` (default) - returns a list of results, with multiple records with the same ``id`` value
-  being combined into a single result. By default the column ``id`` is used but an array of column names can be used
-  to create a unique key lookup for combining records. The id value can be set as one or more columns in the mapper.
-  An optional ``record_mapper`` value may be passed to the constructor to change
-  how records are mapped to result. By default the ``record_mapper`` used is ``DbMapResult``.
+* ``RecordCombiningMapper`` (default) - Returns a list of results where multiple records that can be combined with the
+  same unique identifer. An optional ``record_mapper`` value may be passed to the constructor to change
+  how records are mapped to result. By default the ``record_mapper`` used is ``DbMapResult``. The base identifier
+  is the column ``id`` but an array of columns can be used to create a unique key lookup for combining records.
+
+.. note::
+    The ``_key_columns`` field of the ``DbMapResultModel`` is an array containing only the ``id`` but can
+    be overriden in derived classes. For example, setting  ``_key_columns = [ 'a', 'b' ]`` in your derived class
+    would make it so you class would use the values of columns `a` and `b` in order to uniquely identify
+    records when being combined.
+
 * ``SingleRowMapper`` - returns an object for the first record from the database (even if multiple records are
   returned). An optional ``record_mapper`` value may be passed to the constructor to change how this first record is
   mapped to the result.
-* ``SingleColumnMapper`` - returns a list of scalars with the first column from every record, even if multiple columns
+* ``SingleColumnMapper`` - Returns a list of scalars with the first column from every record, even if multiple columns
   are returned from the database.
-* ``SingleRowAndColumnMapper`` - returns a single scalar value even if multiple records and columns are returned
+* ``SingleRowAndColumnMapper`` - Returns a single scalar value even if multiple records and columns are returned
   from the database.
 * ``CountMapper`` - alias for ``SingleRowAndColumnMapper`` to make it clear that it may be used for ``count`` queries.
 * ``KeyValueMapper`` - returns a dictionary mapping 1 column to the keys and 1 column to the values.

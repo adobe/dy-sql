@@ -59,6 +59,7 @@ class JsonModel(DbMapResultModel):
 
 
 class MultiKeyModel(DbMapResultModel):
+    _key_columns = ['a', 'b']
     _list_fields = {'c'}
     a: int
     b: str
@@ -102,7 +103,7 @@ def test_complex_object_record_combining():
 
 
 def test_record_combining_multi_column_id():
-    mapper = RecordCombiningMapper(record_mapper=MultiKeyModel, id_columns=['a', 'b'])
+    mapper = RecordCombiningMapper(MultiKeyModel)
     assert len(mapper.map_records([])) == 0
     assert _unwrap_results(mapper.map_records([
         {'a': 1, 'b': 'test', 'c': 'one'},
