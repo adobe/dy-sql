@@ -145,6 +145,19 @@ def test_csv_list_field():
            }
 
 
+def test_csv_list_field_single_value():
+    mapper = SingleRowMapper(record_mapper=ListWithStringsModel)
+    assert mapper.map_records([{
+        'id': 1,
+        'list1': 'a',
+        'list2': '1'
+    }]).raw() == {
+               'id': 1,
+               'list1': ['a'],
+               'list2': [1]
+           }
+
+
 def test_csv_list_field_extends():
     mapper = RecordCombiningMapper(record_mapper=ListWithStringsModel)
     assert mapper.map_records([{

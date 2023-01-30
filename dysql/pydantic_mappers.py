@@ -90,6 +90,13 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
 
     def _map_list_from_string(self, current_dict: dict, record: sqlalchemy.engine.Row, field: str):
         list_string = record[field]
+        if list_string is None:
+            # See note above for lists
+            return
+
+        if list_string:  # force it to be a string
+            list_string = str(list_string)
+
         if list_string and isinstance(list_string, str):
             values_from_string = list(map(str.strip, list_string.split(',')))
 
