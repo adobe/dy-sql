@@ -46,7 +46,7 @@ class ListWithStringsModel(DbMapResultModel):
     _csv_list_fields: Set[str] = {'list1', 'list2'}
 
     id: int
-    list1: List[str]
+    list1: Optional[List[str]]
     list2: List[int] = []  # help test empty list gets filled
 
 
@@ -155,6 +155,19 @@ def test_csv_list_field_single_value():
                'id': 1,
                'list1': ['a'],
                'list2': [1]
+           }
+
+
+def test_csv_list_field_empty_string():
+    mapper = SingleRowMapper(record_mapper=ListWithStringsModel)
+    assert mapper.map_records([{
+        'id': 1,
+        'list1': '',
+        'list2': ''
+    }]).raw() == {
+               'id': 1,
+               'list1': None,
+               'list2': []
            }
 
 
