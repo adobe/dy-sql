@@ -90,7 +90,7 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
 
     def _map_list_from_string(self, current_dict: dict, record: sqlalchemy.engine.Row, field: str):
         list_string = record[field]
-        if list_string is None:
+        if not list_string:
             # See note above for lists
             return
 
