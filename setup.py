@@ -77,7 +77,8 @@ setup(
     packages=find_packages(exclude=('*test*',)),
     zip_safe=False,
     install_requires=(
-        'sqlalchemy>=1.4',
+        # SQLAlchemy 2+ is not yet submitted
+        'sqlalchemy<2',
     ),
     extras_require={
         'pydantic': ['pydantic>=1.8.2,<2'],
