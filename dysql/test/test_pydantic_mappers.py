@@ -59,7 +59,11 @@ class JsonModel(DbMapResultModel):
 
 
 class MultiKeyModel(DbMapResultModel):
-    _key_columns = ['a', 'b']
+
+    @classmethod
+    def get_key_columns(cls):
+        return ['a', 'b']
+
     _list_fields = {'c'}
     a: int
     b: str
