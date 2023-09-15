@@ -1,4 +1,4 @@
 -e .
 
 # Used in development, and as an extra
-pydantic>=1.8.2,<2
+pydantic>2

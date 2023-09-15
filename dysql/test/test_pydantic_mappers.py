@@ -9,7 +9,7 @@ import json
 from typing import Any, Dict, List, Set, Optional
 import pytest
 
-from pydantic.error_wrappers import ValidationError
+from pydantic import ValidationError
 
 from dysql import (
     RecordCombiningMapper,
@@ -46,7 +46,7 @@ class ListWithStringsModel(DbMapResultModel):
     _csv_list_fields: Set[str] = {'list1', 'list2'}
 
     id: int
-    list1: Optional[List[str]]
+    list1: Optional[List[str]] = None
     list2: List[int] = []  # help test empty list gets filled
 
 
@@ -55,11 +55,15 @@ class JsonModel(DbMapResultModel):
 
     id: int
     json1: dict
-    json2: Optional[dict]
+    json2: Optional[dict] = None
 
 
 class MultiKeyModel(DbMapResultModel):
-    _key_columns = ['a', 'b']
+
+    @classmethod
+    def get_key_columns(cls):
+        return ['a', 'b']
+
     _list_fields = {'c'}
     a: int
     b: str
@@ -238,7 +242,7 @@ def test_csv_list_field_without_mapping_ignored():
 
 def test_csv_list_field_invalid_type():
     mapper = RecordCombiningMapper(record_mapper=ListWithStringsModel)
-    with pytest.raises(ValidationError, match="value is not a valid integer"):
+    with pytest.raises(ValidationError, match="1 validation error for list"):
         mapper.map_records([{
             'id': 1,
             'list1': 'a,b',
@@ -265,7 +269,7 @@ def test_json_field():
                 }
             }
         })
-    }]).dict() == {
+    }]).model_dump() == {
            'id': 1,
            'json1': {
                'a': 1,
@@ -282,17 +286,20 @@ def test_json_field():
        }
 
 
-def test_invalid_json():
-    with pytest.raises(ValidationError) as excinfo:
+@pytest.mark.parametrize('json1, json2', [
+    ('{ "json": value', None),
+    ('{ "json": value', '{ "json": value }'),
+    ('{ "json": value }', '{ "json": value'),
+    (None, '{ "json": value'),
+])
+def test_invalid_json(json1, json2):
+    with pytest.raises(ValidationError, match='Invalid JSON'):
         mapper = SingleRowMapper(record_mapper=JsonModel)
         mapper.map_records([{
             'id': 1,
-            'json1': '{ "json": value',
-            'json2': 'just a string'
+            'json1': json1,
+            'json2': json2
         }])
-    assert len(excinfo.value.args[0]) == 2
-    assert excinfo.value.args[0][0].exc.args[0] == 'Invalid JSON given to json1'
-    assert excinfo.value.args[0][1].exc.args[0] == 'Invalid JSON given to json2'
 
 
 def test_json_none():
@@ -301,7 +308,7 @@ def test_json_none():
         'id': 1,
         'json1': '{ "first": "value" }',
         'json2': None
-    }]).dict() == {
+    }]).model_dump() == {
         'id': 1,
         'json1': {
             'first': 'value',

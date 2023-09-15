@@ -23,11 +23,10 @@ class MapperError(Exception):
 
 
 class DbMapResultBase(abc.ABC):
-    _key_columns = ['id']
 
     @classmethod
     def get_key_columns(cls):
-        return cls._key_columns
+        return ['id']
 
     @classmethod
     def create_instance(cls, *args, **kwargs) -> 'DbMapResultBase':

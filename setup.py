@@ -5,7 +5,7 @@ import types
 from setuptools import setup, find_packages
 
 
-BASE_VERSION = '1.13'
+BASE_VERSION = '2.0'
 SOURCE_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
@@ -81,7 +81,7 @@ setup(
         'sqlalchemy<2',
     ),
     extras_require={
-        'pydantic': ['pydantic>=1.8.2,<2'],
+        'pydantic': ['pydantic>2'],
     },
     classifiers=[
         'Development Status :: 4 - Beta',

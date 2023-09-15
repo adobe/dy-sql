@@ -118,15 +118,15 @@ class TestMappers:
     ])
     def test_key_mapper_key_has_multiple(mapper, expected):
         result = mapper.map_records([
-            TestRow(('column_named_something', 'column_with_some_value'), ['a', 1]),
-            TestRow(('column_named_something', 'column_with_some_value'), ['a', 2]),
-            TestRow(('column_named_something', 'column_with_some_value'), ['a', 3]),
-            TestRow(('column_named_something', 'column_with_some_value'), ['a', 4]),
-            TestRow(('column_named_something', 'column_with_some_value'), ['b', 3]),
-            TestRow(('column_named_something', 'column_with_some_value'), ['b', 4]),
-            TestRow(('column_named_something', 'column_with_some_value'), ['b', 5]),
-            TestRow(('column_named_something', 'column_with_some_value'), ['b', 6]),
-            TestRow(('column_named_something', 'column_with_some_value'), ['b', 7]),
+            HelperRow(('column_named_something', 'column_with_some_value'), ['a', 1]),
+            HelperRow(('column_named_something', 'column_with_some_value'), ['a', 2]),
+            HelperRow(('column_named_something', 'column_with_some_value'), ['a', 3]),
+            HelperRow(('column_named_something', 'column_with_some_value'), ['a', 4]),
+            HelperRow(('column_named_something', 'column_with_some_value'), ['b', 3]),
+            HelperRow(('column_named_something', 'column_with_some_value'), ['b', 4]),
+            HelperRow(('column_named_something', 'column_with_some_value'), ['b', 5]),
+            HelperRow(('column_named_something', 'column_with_some_value'), ['b', 6]),
+            HelperRow(('column_named_something', 'column_with_some_value'), ['b', 7]),
         ])
         assert len(result) == len(expected)
         assert result == expected
@@ -137,7 +137,7 @@ class TestMappers:
             KeyValueMapper(key_column='same', value_column='same')
 
 
-class TestRow:  # pylint: disable=too-few-public-methods
+class HelperRow:  # pylint: disable=too-few-public-methods
     """
     Helper class does the most basic functionality we see when accessing records passed in
     """
