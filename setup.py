@@ -81,7 +81,7 @@ setup(
         'sqlalchemy<2',
     ),
     extras_require={
-        'pydantic': ['pydantic>=1.8.2,<2'],
+        'pydantic': ['pydantic>2'],
     },
     classifiers=[
         'Development Status :: 4 - Beta',
