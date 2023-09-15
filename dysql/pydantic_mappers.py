@@ -41,7 +41,7 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
     @classmethod
     def create_instance(cls, *args, **kwargs) -> 'DbMapResultModel':
         # Uses the construct method to prevent validation when mapping results
-        return cls.construct(*args, **kwargs)
+        return cls.model_construct(*args, **kwargs)
 
     def _map_json(self, current_dict: dict, record: sqlalchemy.engine.Row, field: str):
         model_field = self.model_fields[field]
@@ -151,7 +151,7 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
         Tells if a record has already been mapped onto this class or not.
         :return: True if map_record has already been called, False otherwise
         """
-        return bool(getattr(self, '__fields_set__', False))
+        return bool(self.model_fields_set)
 
     def get(self, field: str, default: Any = None) -> Any:
         return self.__dict__.get(field, default)

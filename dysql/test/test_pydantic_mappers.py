@@ -60,7 +60,6 @@ class JsonModel(DbMapResultModel):
 
 class MultiKeyModel(DbMapResultModel):
     _key_columns = ['a', 'b']
-
     _list_fields = {'c'}
     a: int
     b: str
@@ -266,7 +265,7 @@ def test_json_field():
                 }
             }
         })
-    }]).dict() == {
+    }]).model_dump() == {
            'id': 1,
            'json1': {
                'a': 1,
@@ -305,7 +304,7 @@ def test_json_none():
         'id': 1,
         'json1': '{ "first": "value" }',
         'json2': None
-    }]).dict() == {
+    }]).model_dump() == {
         'id': 1,
         'json1': {
             'first': 'value',
