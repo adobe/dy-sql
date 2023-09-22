@@ -2,6 +2,8 @@ import importlib.machinery
 import os
 import subprocess
 import types
+from datetime import datetime
+
 from setuptools import setup, find_packages
 
 
@@ -50,6 +52,7 @@ def get_version():
             if os.path.exists(DYSQL_DIR):
                 with open(HEADER_FILE, 'r', encoding='utf8') as fobj:
                     header = fobj.read()
+                header = header.replace('20\d\d', datetime.now().strftime('%Y'))
                 with open(VERSION_FILE, 'w', encoding='utf8') as fobj:
                     fobj.write(f"{header}\n__version__ = '{new_version}'\n")
             return new_version

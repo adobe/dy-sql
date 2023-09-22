@@ -138,7 +138,7 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
             self.__dict__.update(current_dict)
         else:
             # Init takes care of validation and assigning values to each field with conversions in place, etc
-            self.__init__(**current_dict)
+            self.__init__(**current_dict)  # pylint: disable=unnecessary-dunder-call
 
     def raw(self) -> dict:
         return self.model_dump()

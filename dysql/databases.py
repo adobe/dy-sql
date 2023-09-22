@@ -185,6 +185,7 @@ class DatabaseContainer(dict):
         """
         The current database instance, retrieved using contextvars (if python 3.7+) or the default database.
         """
+        # pylint: disable=unnecessary-dunder-call
         return self.__getitem__(_get_current_database())
 
 

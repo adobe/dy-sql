@@ -275,7 +275,7 @@ mapping. These annotations are not required, but may be helpful in some cases.
         # This annotation will convert the string into a list of strings or None if the string is null or empty
         list_from_string_nullable: FromCSVToList[List[str] | None]
 
-        # if using python < 3.9, you can use typing.Union instead of the pipe operator
+        # if using python <= 3.9, you can use typing.Union instead of the pipe operator
         # list_from_string_nullable: FromCSVToList[Union[List[str],None]]
 
 
