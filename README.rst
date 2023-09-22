@@ -250,6 +250,35 @@ if you desire better validation for list, set, or dict fields, this must most li
 Additionally, lists, sets, and dicts will ignore null values from the database. Therefore you must provide default
 values for these fields when used or else validation will fail.
 
+Added annotations when using DbMapResultModel
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+When using the ``DbMapResultModel`` mapper, there are some additional annotations that may be used to help with
+mapping. These annotations are not required, but may be helpful in some cases.
+
+* FromCSVToList - this annotation will convert a comma separated string into a list. This is useful when you have
+  a column containing a csv or a query that uses ``group_concat`` to combine multiple rows into a single row. This
+  annotation may be used on any field that is a list. For example:
+
+  .. code-block:: python
+
+    from dysql.pydantic_mappers import DbMapResultModel, FromCSVToList
+
+    class CsvModel(DbMapResultModel):
+        id: int
+        name: str
+        # This annotation will convert the string into a list of ints
+        list_from_string_int: FromCSVToList[List[int]]
+        # This annotation will convert the string into a list of strings
+        list_from_string: FromCSVToList[List[str]]
+        # This annotation will convert the string into a list of ints or None if the string is null or empty
+        list_from_string_int_nullable: FromCSVToList[List[int] | None]
+        # This annotation will convert the string into a list of strings or None if the string is null or empty
+        list_from_string_nullable: FromCSVToList[List[str] | None]
+
+        # if using python < 3.9, you can use typing.Union instead of the pipe operator
+        # list_from_string_nullable: FromCSVToList[Union[List[str],None]]
+
+
 @sqlquery
 ~~~~~~~~~
 This is for making SQL ``select`` calls. An optional mapper may be specified to
