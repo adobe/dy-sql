@@ -80,7 +80,7 @@ setup(
         # SQLAlchemy 2+ is not yet submitted
         'sqlalchemy<2',
         # now using features only found in pydantic 2+
-        'pydantic>2',
+        'pydantic>=2',
     ],
     classifiers=[
         'Development Status :: 4 - Beta',
