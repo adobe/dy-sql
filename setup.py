@@ -2,10 +2,12 @@ import importlib.machinery
 import os
 import subprocess
 import types
+from datetime import datetime
+
 from setuptools import setup, find_packages
 
 
-BASE_VERSION = '2.0'
+BASE_VERSION = '3.0'
 SOURCE_DIR = os.path.dirname(
     os.path.abspath(__file__)
 )
@@ -50,6 +52,7 @@ def get_version():
             if os.path.exists(DYSQL_DIR):
                 with open(HEADER_FILE, 'r', encoding='utf8') as fobj:
                     header = fobj.read()
+                header = header.replace('20\d\d', datetime.now().strftime('%Y'))
                 with open(VERSION_FILE, 'w', encoding='utf8') as fobj:
                     fobj.write(f"{header}\n__version__ = '{new_version}'\n")
             return new_version
@@ -76,13 +79,12 @@ setup(
     platforms=['Any'],
     packages=find_packages(exclude=('*test*',)),
     zip_safe=False,
-    install_requires=(
+    install_requires=[
         # SQLAlchemy 2+ is not yet submitted
         'sqlalchemy<2',
-    ),
-    extras_require={
-        'pydantic': ['pydantic>2'],
-    },
+        # now using features only found in pydantic 2+
+        'pydantic>=2',
+    ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'License :: OSI Approved :: MIT License',
