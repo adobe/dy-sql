@@ -13,7 +13,11 @@ from time import sleep
 from typing import Optional
 
 from .connections import sqlquery
-from .databases import is_set_current_database_supported, set_current_database, set_default_connection_parameters
+from .databases import (
+    is_set_current_database_supported,
+    set_current_database,
+    set_default_connection_parameters,
+)
 from .mappers import CountMapper
 from .query_utils import QueryData
 
@@ -24,18 +28,19 @@ class DbTestManagerBase(abc.ABC):
     """
     Base class for all test managers. See individual implementations for usage details.
     """
+
     # pylint: disable=too-many-instance-attributes
 
     def __init__(
-            self,
-            host: str,
-            username: str,
-            password: str,
-            db_name: str,
-            schema_db_name: Optional[str],
-            docker_container: Optional[str] = None,
-            keep_db: bool = False,
-            **connection_defaults,
+        self,
+        host: str,
+        username: str,
+        password: str,
+        db_name: str,
+        schema_db_name: Optional[str],
+        docker_container: Optional[str] = None,
+        keep_db: bool = False,
+        **connection_defaults,
     ):  # pylint: disable=too-many-arguments
         """
         Constructor, any unknown kwargs are passed directly to set_default_connection_parameters.
@@ -61,19 +66,19 @@ class DbTestManagerBase(abc.ABC):
 
     @staticmethod
     def _is_running_in_docker():
-        if os.path.exists('/.dockerenv'):
+        if os.path.exists("/.dockerenv"):
             return True
 
-        if os.path.exists('/proc/1/cgroup'):
-            with open('/proc/1/cgroup', 'rt', encoding='utf8') as fobj:
+        if os.path.exists("/proc/1/cgroup"):
+            with open("/proc/1/cgroup", "rt", encoding="utf8") as fobj:
                 contents = fobj.read()
-                for marker in ('docker', 'kubepod', 'lxc'):
+                for marker in ("docker", "kubepod", "lxc"):
                     if marker in contents:
                         return True
         return False
 
     def __enter__(self):
-        LOGGER.debug(f'Setting up database : {self.db_name}')
+        LOGGER.debug(f"Setting up database : {self.db_name}")
         # Set the host based on whether we are in buildrunner or not (to test locally)
 
         self._create_test_db()
@@ -94,7 +99,7 @@ class DbTestManagerBase(abc.ABC):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         if not self.keep_db:
-            LOGGER.debug(f'Tearing down database : {self.db_name}')
+            LOGGER.debug(f"Tearing down database : {self.db_name}")
             self._tear_down_test_db()
 
     @abc.abstractmethod
@@ -125,8 +130,8 @@ class DbTestManagerBase(abc.ABC):
         tables_exist = False
         expected_count = self._get_tables_count(self.schema_db_name)
         while not tables_exist:
-            sleep(.25)
-            LOGGER.debug('Tables are still not ready')
+            sleep(0.25)
+            LOGGER.debug("Tables are still not ready")
             actual_count = self._get_tables_count(self.db_name)
             tables_exist = expected_count == actual_count
 
@@ -141,12 +146,14 @@ class DbTestManagerBase(abc.ABC):
 
         try:
             LOGGER.debug(f"Executing : '{command}'")
-            completed_process = subprocess.run(command, shell=True, timeout=30, check=True, capture_output=True)
+            completed_process = subprocess.run(
+                command, shell=True, timeout=30, check=True, capture_output=True
+            )
             LOGGER.debug(f"Executed : {completed_process.stdout}")
 
             return completed_process
         except subprocess.CalledProcessError:
-            LOGGER.exception(f'Error handling command : {command}')
+            LOGGER.exception(f"Error handling command : {command}")
             raise
 
 
@@ -163,16 +170,17 @@ class MariaDbTestManager(DbTestManagerBase):
         with MariaDbTestManager(f'testdb_{self.__class__.__name__.lower()}'):
             yield
     """
+
     # pylint: disable=too-few-public-methods
 
     def __init__(
-            self,
-            db_name: str,
-            schema_db_name: Optional[str] = None,
-            echo_queries: bool = False,
-            keep_db: bool = False,
-            pool_size=3,
-            charset='utf8'
+        self,
+        db_name: str,
+        schema_db_name: Optional[str] = None,
+        echo_queries: bool = False,
+        keep_db: bool = False,
+        pool_size=3,
+        charset="utf8",
     ):  # pylint: disable=too-many-arguments
         """
         :param db_name: the name you want for your test database
@@ -183,37 +191,45 @@ class MariaDbTestManager(DbTestManagerBase):
         :param charset: This allows you to override the default charset if you need something besides utf8
         """
         super().__init__(
-            os.getenv('MARIA_HOST', 'localhost'),
-            os.getenv('MARIA_USERNAME', 'root'),
-            os.getenv('MARIA_PASSWORD', 'password'),
+            os.getenv("MARIA_HOST", "localhost"),
+            os.getenv("MARIA_USERNAME", "root"),
+            os.getenv("MARIA_PASSWORD", "password"),
             db_name,
             schema_db_name,
             port=3306,
             echo_queries=echo_queries,
             pool_size=pool_size,
-            docker_container=os.getenv('MARIA_CONTAINER_NAME', 'mariadb'),
+            docker_container=os.getenv("MARIA_CONTAINER_NAME", "mariadb"),
             keep_db=keep_db,
-            charset=charset
+            charset=charset,
         )
 
     def _create_test_db(self) -> None:
-        self._run(f'mysql -p{self.password} -h{self.host} -N -e "DROP DATABASE IF EXISTS {self.db_name}"')
-        self._run(f'mysql -p{self.password} -h{self.host} -s -N -e "CREATE DATABASE IF NOT EXISTS {self.db_name}"')
+        self._run(
+            f'mysql -p{self.password} -h{self.host} -N -e "DROP DATABASE IF EXISTS {self.db_name}"'
+        )
+        self._run(
+            f'mysql -p{self.password} -h{self.host} -s -N -e "CREATE DATABASE IF NOT EXISTS {self.db_name}"'
+        )
         if self.schema_db_name:
             self._run(
-                f'mysqldump --no-data -p{self.password} {self.schema_db_name} -h{self.host} '
-                f'| mysql -p{self.password} {self.db_name} -h{self.host}'
+                f"mysqldump --no-data -p{self.password} {self.schema_db_name} -h{self.host} "
+                f"| mysql -p{self.password} {self.db_name} -h{self.host}"
             )
 
     def _tear_down_test_db(self) -> None:
-        self._run(f'echo "DROP DATABASE IF EXISTS {self.db_name} " | mysql -p{self.password} -h{self.host}')
+        self._run(
+            f'echo "DROP DATABASE IF EXISTS {self.db_name} " | mysql -p{self.password} -h{self.host}'
+        )
 
     @sqlquery(mapper=CountMapper())
     def _get_tables_count(self, db_name: str) -> int:
         # pylint: disable=unused-argument
         return QueryData(
-            '''
+            """
             SELECT count(1)
             FROM information_schema.TABLES
             WHERE TABLE_SCHEMA=:db_name
-            ''', query_params={'db_name': db_name})
+            """,
+            query_params={"db_name": db_name},
+        )

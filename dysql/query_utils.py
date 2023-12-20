@@ -17,7 +17,9 @@ from typing import Iterable, Optional, Tuple, Union
 # group 4 - column_name
 # group 5 - empty space after template. this helps us ensure we add space to a template after but
 #   only 1
-LIST_TEMPLATE_REGEX = re.compile(r'(( +)?{(in|not_in|values)__([A-Za-z_]+\.)?([A-Za-z_]+)}( +)?)')
+LIST_TEMPLATE_REGEX = re.compile(
+    r"(( +)?{(in|not_in|values)__([A-Za-z_]+\.)?([A-Za-z_]+)}( +)?)"
+)
 
 
 class TemplateGenerators:
@@ -28,20 +30,20 @@ class TemplateGenerators:
 
     @classmethod
     def get_template(cls, name: str):
-        if name == 'in':
+        if name == "in":
             return cls.in_column
-        if name == 'not_in':
+        if name == "not_in":
             return cls.not_in_column
-        if name == 'values':
+        if name == "values":
             return cls.values
         return None
 
     @staticmethod
     def in_column(
-            name: str,
-            values: Union[str, Iterable[str]],
-            legacy_key: str = None,
-            is_multi_column: bool = False
+        name: str,
+        values: Union[str, Iterable[str]],
+        legacy_key: str = None,
+        is_multi_column: bool = False,
     ) -> Tuple[str, Optional[dict]]:
         """
         Returns query and params for using "IN" SQL queries.
@@ -52,18 +54,16 @@ class TemplateGenerators:
         :return: a tuple of the query string and the params dictionary
         """
         if not values:
-            return '1 <> 1', None
+            return "1 <> 1", None
         key_name = TemplateGenerators._get_key(name, legacy_key, is_multi_column)
         keys, values = TemplateGenerators._parameterize_list(key_name, values)
         if is_multi_column:
-            keys = f'({keys})'
-        return f'{name} IN {keys}', values
+            keys = f"({keys})"
+        return f"{name} IN {keys}", values
 
     @staticmethod
     def in_multi_column(
-            name: str,
-            values: Union[str, Iterable[str]],
-            legacy_key: str = None
+        name: str, values: Union[str, Iterable[str]], legacy_key: str = None
     ):
         """
         A wrapper for in_column with is_multi_column set to true
@@ -72,10 +72,10 @@ class TemplateGenerators:
 
     @staticmethod
     def not_in_column(
-            name: str,
-            values: Union[str, Iterable[str]],
-            legacy_key: str = None,
-            is_multi_column: bool = False
+        name: str,
+        values: Union[str, Iterable[str]],
+        legacy_key: str = None,
+        is_multi_column: bool = False,
     ) -> Tuple[str, Optional[dict]]:
         """
         Returns query and params for using "NOT IN" SQL queries.
@@ -86,20 +86,17 @@ class TemplateGenerators:
         :return: a tuple of the query string and the params dictionary
         """
         if not values:
-            return '1 = 1', None
+            return "1 = 1", None
         key_name = TemplateGenerators._get_key(name, legacy_key, is_multi_column)
         keys, values = TemplateGenerators._parameterize_list(key_name, values)
         if is_multi_column:
-            keys = f'({keys})'
-        return f'{name} NOT IN {keys}', values
+            keys = f"({keys})"
+        return f"{name} NOT IN {keys}", values
 
     @staticmethod
     def not_in_multi_column(
-            name: str,
-            values: Union[str, Iterable[str]],
-            legacy_key: str = None
+        name: str, values: Union[str, Iterable[str]], legacy_key: str = None
     ):
-
         """
         A wrapper for not_in_column with is_multi_column set to true
         """
@@ -107,9 +104,9 @@ class TemplateGenerators:
 
     @staticmethod
     def values(
-            name: str,
-            values: Union[str, Iterable[str]],
-            legacy_key: str = None,
+        name: str,
+        values: Union[str, Iterable[str]],
+        legacy_key: str = None,
     ) -> Tuple[str, Optional[dict]]:
         """
         Returns query and params for using "VALUES" SQL queries.
@@ -119,10 +116,10 @@ class TemplateGenerators:
         :return: a tuple of the query string and the params dictionary
         """
         if not values:
-            raise ListTemplateException(f'Must have values for {name} template')
+            raise ListTemplateException(f"Must have values for {name} template")
         key_name = TemplateGenerators._get_key(name, legacy_key, False)
         keys, values = TemplateGenerators._parameterize_list(key_name, values)
-        return f'VALUES {keys}', values
+        return f"VALUES {keys}", values
 
     @staticmethod
     def _get_key(key: str, legacy_key: str, is_multi_column: bool) -> str:
@@ -130,11 +127,13 @@ class TemplateGenerators:
         if legacy_key:
             key_name = legacy_key
         if is_multi_column:
-            key_name = re.sub('[, ()]', '', key_name)
+            key_name = re.sub("[, ()]", "", key_name)
         return key_name
 
     @staticmethod
-    def _parameterize_inner_list(key: str, values: Union[str, Iterable[str]]) -> Tuple[str, Optional[dict]]:
+    def _parameterize_inner_list(
+        key: str, values: Union[str, Iterable[str]]
+    ) -> Tuple[str, Optional[dict]]:
         param_values = {}
         parameterized_keys = []
         if not isinstance(values, (list, tuple)):
@@ -149,7 +148,9 @@ class TemplateGenerators:
         return f"( :{', :'.join(parameterized_keys)} )", param_values
 
     @staticmethod
-    def _parameterize_list(key: str, values: Union[str, Iterable[str]]) -> Tuple[str, Optional[dict]]:
+    def _parameterize_list(
+        key: str, values: Union[str, Iterable[str]]
+    ) -> Tuple[str, Optional[dict]]:
         """
         Build a string with parameterized values and a dictionary
         with key value pairs matching the string parameters.
@@ -162,16 +163,19 @@ class TemplateGenerators:
             values = tuple((values,))
 
         for index, value in enumerate(values):
-            if isinstance(value, tuple) or key.startswith('values'):
-                param_string, inner_param_values = TemplateGenerators._parameterize_inner_list(
-                    f'{key}_{str(index)}', value
+            if isinstance(value, tuple) or key.startswith("values"):
+                (
+                    param_string,
+                    inner_param_values,
+                ) = TemplateGenerators._parameterize_inner_list(
+                    f"{key}_{str(index)}", value
                 )
                 param_values.update(inner_param_values)
                 param_inner_keys.append(param_string)
             else:
                 return TemplateGenerators._parameterize_inner_list(key, values)
 
-        return ', '.join(param_inner_keys), param_values
+        return ", ".join(param_inner_keys), param_values
 
 
 class ListTemplateException(Exception):
@@ -195,10 +199,10 @@ class QueryData:
     """
 
     def __init__(
-            self,
-            query: str,
-            query_params: dict = None,
-            template_params: dict = None,
+        self,
+        query: str,
+        query_params: dict = None,
+        template_params: dict = None,
     ):
         """
         Constructor.
@@ -257,11 +261,11 @@ def __validate_keys_clean_query(query, template_params):
         # validate
         if template_params is None or template_params.get(key) is None:
             missing_keys.append(key)
-        elif key == 'values' and len(template_params.get(key)) == 0:
+        elif key == "values" and len(template_params.get(key)) == 0:
             missing_keys.append(key)
 
         if len(missing_keys) > 0:
-            raise ListTemplateException(f'Missing template keys {missing_keys}')
+            raise ListTemplateException(f"Missing template keys {missing_keys}")
 
         # Clean whitespace as templates will add their own padding later on
         query = query.replace(groups[0], groups[0].strip())
@@ -270,7 +274,9 @@ def __validate_keys_clean_query(query, template_params):
 
 def __validate_query_and_params(data: QueryData) -> None:
     if not isinstance(data, QueryData):
-        raise QueryDataError('SQL annotated methods must return an instance of QueryData for query information')
+        raise QueryDataError(
+            "SQL annotated methods must return an instance of QueryData for query information"
+        )
 
 
 def get_query_data(data: QueryData) -> Tuple[str, dict]:
@@ -282,18 +288,22 @@ def get_query_data(data: QueryData) -> Tuple[str, dict]:
     __validate_query_and_params(data)
 
     params = {}
-    query, validated_keys = __validate_keys_clean_query(data.query, data.template_params)
+    query, validated_keys = __validate_keys_clean_query(
+        data.query, data.template_params
+    )
 
     if data.query_params:
         params.update(data.query_params)
 
     for key in validated_keys:
-        list_template_key, column_name = tuple(key.split('__'))
+        list_template_key, column_name = tuple(key.split("__"))
         template_to_use = TemplateGenerators.get_template(list_template_key)
-        template_query, param_dict = template_to_use(column_name, data.template_params[key], legacy_key=key)
+        template_query, param_dict = template_to_use(
+            column_name, data.template_params[key], legacy_key=key
+        )
         if param_dict:
             params.update(param_dict)
-        query_key = '{' + key + '}'
-        query = query.replace(query_key, f' {template_query} ')
+        query_key = "{" + key + "}"
+        query = query.replace(query_key, f" {template_query} ")
 
     return query, params

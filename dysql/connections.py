@@ -21,7 +21,7 @@ from .mappers import (
 from .query_utils import get_query_data
 
 
-logger = logging.getLogger('database')
+logger = logging.getLogger("database")
 
 
 # Always initialize a database container, it is never set again
@@ -35,8 +35,10 @@ class _ConnectionManager:
     def __init__(self, func, isolation_level, transaction, *args, **kwargs):
         self._transaction = None
 
-        self._connection = _DATABASE_CONTAINER.current_database.engine.connect().execution_options(
-            isolation_level=isolation_level
+        self._connection = (
+            _DATABASE_CONTAINER.current_database.engine.connect().execution_options(
+                isolation_level=isolation_level
+            )
         )
         if transaction:
             self._transaction = self._connection.begin()
@@ -75,7 +77,10 @@ class _ConnectionManager:
         return self._connection.execute(sqlalchemy.text(query), params)
 
 
-def sqlquery(mapper: Union[BaseMapper, Type[BaseMapper]] = None, isolation_level: str = 'READ_COMMITTED'):
+def sqlquery(
+    mapper: Union[BaseMapper, Type[BaseMapper]] = None,
+    isolation_level: str = "READ_COMMITTED",
+):
     """
     query allows for defining a parameterize select query that is then executed
     :param mapper: a class extending from or an instance of BaseMapper, defaults to
@@ -120,7 +125,9 @@ def sqlquery(mapper: Union[BaseMapper, Type[BaseMapper]] = None, isolation_level
             if inspect.isclass(actual_mapper):
                 actual_mapper = actual_mapper()
 
-            with _ConnectionManager(func, isolation_level, False, *args, **kwargs) as conn_manager:
+            with _ConnectionManager(
+                func, isolation_level, False, *args, **kwargs
+            ) as conn_manager:
                 data = func(*args, **kwargs)
                 query, params = get_query_data(data)
                 records = conn_manager.execute_query(query, params)
@@ -131,7 +138,7 @@ def sqlquery(mapper: Union[BaseMapper, Type[BaseMapper]] = None, isolation_level
     return decorator
 
 
-def sqlexists(isolation_level='READ_COMMITTED'):
+def sqlexists(isolation_level="READ_COMMITTED"):
     """
     exists query allows for defining a parameterize select query that is
     wrapped in an exists clause and then executed
@@ -155,15 +162,17 @@ def sqlexists(isolation_level='READ_COMMITTED'):
     def decorator(func):
         def handle_query(*args, **kwargs):
             functools.wraps(func, handle_query)
-            with _ConnectionManager(func, isolation_level, False, *args, **kwargs) as conn_manager:
+            with _ConnectionManager(
+                func, isolation_level, False, *args, **kwargs
+            ) as conn_manager:
                 data = func(*args, **kwargs)
                 query, params = get_query_data(data)
 
                 query = query.lstrip()
-                if query.startswith('SELECT EXISTS'):
-                    query = query.replace('SELECT EXISTS', 'SELECT 1 WHERE EXISTS')
-                if not query.startswith('SELECT 1 WHERE EXISTS'):
-                    query = f'SELECT 1 WHERE EXISTS ( {query} )'
+                if query.startswith("SELECT EXISTS"):
+                    query = query.replace("SELECT EXISTS", "SELECT 1 WHERE EXISTS")
+                if not query.startswith("SELECT 1 WHERE EXISTS"):
+                    query = f"SELECT 1 WHERE EXISTS ( {query} )"
                 result = conn_manager.execute_query(query, params).scalar()
                 return result == 1
 
@@ -172,7 +181,9 @@ def sqlexists(isolation_level='READ_COMMITTED'):
     return decorator
 
 
-def sqlupdate(isolation_level='READ_COMMITTED', disable_foreign_key_checks=False, on_success=None):
+def sqlupdate(
+    isolation_level="READ_COMMITTED", disable_foreign_key_checks=False, on_success=None
+):
     """
     :param isolation_level should specify whether we can read data from transactions that are not
         yet committed defaults to READ_COMMITTED
@@ -209,8 +220,9 @@ def sqlupdate(isolation_level='READ_COMMITTED', disable_foreign_key_checks=False
 
         def handle_query(*args, **kwargs):
             functools.wraps(func)
-            with _ConnectionManager(func, isolation_level, True, *args, **kwargs) as conn_manager:
-
+            with _ConnectionManager(
+                func, isolation_level, True, *args, **kwargs
+            ) as conn_manager:
                 if disable_foreign_key_checks:
                     conn_manager.execute_query("SET FOREIGN_KEY_CHECKS=0")
 
@@ -228,7 +240,7 @@ def sqlupdate(isolation_level='READ_COMMITTED', disable_foreign_key_checks=False
                     data = func(*args, **kwargs)
                     query, params = get_query_data(data)
                     if isinstance(params, list):
-                        raise Exception('Params must not be a list')
+                        raise Exception("Params must not be a list")
                     conn_manager.execute_query(query, params)
 
                 if disable_foreign_key_checks:

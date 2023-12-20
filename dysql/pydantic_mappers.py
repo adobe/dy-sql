@@ -25,6 +25,7 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
     Additionally, lists, sets, and dicts will ignore null values from the database. Therefore you must provide default
     values for these fields when used or else validation will fail.
     """
+
     # List fields that are aggregated into a string of comma seperated values with basic string splitting on commas
     _csv_list_fields: Set[str] = set()
     # List field that are json objects
@@ -39,7 +40,7 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
     _dict_value_mappings: Dict[str, str] = {}
 
     @classmethod
-    def create_instance(cls, *args, **kwargs) -> 'DbMapResultModel':
+    def create_instance(cls, *args, **kwargs) -> "DbMapResultModel":
         # Uses the construct method to prevent validation when mapping results
         return cls.model_construct(*args, **kwargs)
 
@@ -49,7 +50,9 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
         if not value:
             return
         if not self._has_been_mapped():
-            current_dict[field] = TypeAdapter(model_field.annotation).validate_json(value)
+            current_dict[field] = TypeAdapter(model_field.annotation).validate_json(
+                value
+            )
 
     def _map_list(self, current_dict: dict, record: sqlalchemy.engine.Row, field: str):
         if record[field] is None:
@@ -81,7 +84,9 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
         else:
             current_dict[model_field_name] = {record[field]: record[value_field]}
 
-    def _map_list_from_string(self, current_dict: dict, record: sqlalchemy.engine.Row, field: str):
+    def _map_list_from_string(
+        self, current_dict: dict, record: sqlalchemy.engine.Row, field: str
+    ):
         list_string = record[field]
         if not list_string:
             # See note above for lists
@@ -89,7 +94,7 @@ class DbMapResultModel(BaseModel, DbMapResultBase):
 
         # force it to be a string
         list_string = str(list_string)
-        values_from_string = list(map(str.strip, list_string.split(',')))
+        values_from_string = list(map(str.strip, list_string.split(",")))
 
         model_field = self.model_fields[field]
         # pre-validates the list we are expecting because we want to ensure all records are validated

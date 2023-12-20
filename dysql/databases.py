@@ -15,18 +15,21 @@ import sqlalchemy
 from .exceptions import DBNotPreparedError
 
 
-logger = logging.getLogger('database')
+logger = logging.getLogger("database")
 
 _DEFAULT_CONNECTION_PARAMS = {}
 
 try:
     import contextvars
-    CURRENT_DATABASE_VAR = contextvars.ContextVar("dysql_current_database", default='')
+
+    CURRENT_DATABASE_VAR = contextvars.ContextVar("dysql_current_database", default="")
 except ImportError:
     CURRENT_DATABASE_VAR = None
 
 
-def set_database_init_hook(hook_method: Callable[[Optional[str], sqlalchemy.engine.Engine], None]) -> None:
+def set_database_init_hook(
+    hook_method: Callable[[Optional[str], sqlalchemy.engine.Engine], None],
+) -> None:
     """
     Sets an initialization hook whenever a new database is initialized. This method will receive the database name
     (may be none) and the sqlalchemy engine as parameters.
@@ -55,7 +58,7 @@ def set_current_database(database: str) -> None:
             f'Cannot set the current database on Python "{sys.version}", please upgrade your Python version'
         )
     CURRENT_DATABASE_VAR.set(database)
-    logger.debug(f'Set current database to {database}')
+    logger.debug(f"Set current database to {database}")
 
 
 def reset_current_database() -> None:
@@ -63,7 +66,7 @@ def reset_current_database() -> None:
     Helper method to reset the current database to the default. Internally, this calls `set_current_database` with
     an empty string.
     """
-    set_current_database('')
+    set_current_database("")
 
 
 def _get_current_database() -> str:
@@ -75,25 +78,27 @@ def _get_current_database() -> str:
     if CURRENT_DATABASE_VAR:
         database = CURRENT_DATABASE_VAR.get()
     if not database:
-        database = _DEFAULT_CONNECTION_PARAMS.get('database')
+        database = _DEFAULT_CONNECTION_PARAMS.get("database")
     return database
 
 
 def _validate_param(name: str, value: str) -> None:
     if not value:
-        raise DBNotPreparedError(f'Database parameter "{name}" is not set or empty and is required')
+        raise DBNotPreparedError(
+            f'Database parameter "{name}" is not set or empty and is required'
+        )
 
 
 def set_default_connection_parameters(
-        host: str,
-        user: str,
-        password: str,
-        database: str,
-        port: int = 3306,
-        pool_size: int = 10,
-        pool_recycle: int = 3600,
-        echo_queries: bool = False,
-        charset: str = 'utf8'
+    host: str,
+    user: str,
+    password: str,
+    database: str,
+    port: int = 3306,
+    pool_size: int = 10,
+    pool_recycle: int = 3600,
+    echo_queries: bool = False,
+    charset: str = "utf8",
 ):  # pylint: disable=too-many-arguments,unused-argument
     """
     Initializes the parameters to use when connecting to the database. This is a subset of the parameters
@@ -111,10 +116,10 @@ def set_default_connection_parameters(
     :param charset: the charset for the sql engine to initialize with. (default utf8)
     :exception DBNotPrepareError: happens when required parameters are missing
     """
-    _validate_param('host', host)
-    _validate_param('user', user)
-    _validate_param('password', password)
-    _validate_param('database', database)
+    _validate_param("host", host)
+    _validate_param("user", user)
+    _validate_param("password", password)
+    _validate_param("database", database)
 
     _DEFAULT_CONNECTION_PARAMS.update(locals())
 
@@ -129,30 +134,31 @@ class Database:
 
     @classmethod
     def set_init_hook(
-            cls,
-            hook_method: Callable[[Optional[str], sqlalchemy.engine.Engine], None],
+        cls,
+        hook_method: Callable[[Optional[str], sqlalchemy.engine.Engine], None],
     ) -> None:
         cls.hook_method = hook_method
 
     @property
     def engine(self) -> sqlalchemy.engine.Engine:
         if not self._engine:
-            user = _DEFAULT_CONNECTION_PARAMS.get('user')
-            password = _DEFAULT_CONNECTION_PARAMS.get('password')
-            host = _DEFAULT_CONNECTION_PARAMS.get('host')
-            port = _DEFAULT_CONNECTION_PARAMS.get('port')
-            charset = _DEFAULT_CONNECTION_PARAMS.get('charset')
+            user = _DEFAULT_CONNECTION_PARAMS.get("user")
+            password = _DEFAULT_CONNECTION_PARAMS.get("password")
+            host = _DEFAULT_CONNECTION_PARAMS.get("host")
+            port = _DEFAULT_CONNECTION_PARAMS.get("port")
+            charset = _DEFAULT_CONNECTION_PARAMS.get("charset")
 
-            url = f'mysql+mysqlconnector://{user}:{password}@{host}:{port}/{self.database}?charset={charset}'
+            url = f"mysql+mysqlconnector://{user}:{password}@{host}:{port}/{self.database}?charset={charset}"
             self._engine = sqlalchemy.create_engine(
                 url,
-                pool_recycle=_DEFAULT_CONNECTION_PARAMS.get('pool_recycle'),
-                pool_size=_DEFAULT_CONNECTION_PARAMS.get('pool_size'),
-                echo=_DEFAULT_CONNECTION_PARAMS.get('echo_queries'),
+                pool_recycle=_DEFAULT_CONNECTION_PARAMS.get("pool_recycle"),
+                pool_size=_DEFAULT_CONNECTION_PARAMS.get("pool_size"),
+                echo=_DEFAULT_CONNECTION_PARAMS.get("echo_queries"),
                 pool_pre_ping=True,
             )
-            hook_method: Optional[Callable[[Optional[str], sqlalchemy.engine.Engine], None]] = \
-                getattr(self.__class__, 'hook_method', None)
+            hook_method: Optional[
+                Callable[[Optional[str], sqlalchemy.engine.Engine], None]
+            ] = getattr(self.__class__, "hook_method", None)
             if hook_method:
                 hook_method(self.database, self._engine)
 
@@ -163,6 +169,7 @@ class DatabaseContainer(dict):
     """
     Implementation of a dictionary that always provides a Database class instance, even if the key is missing.
     """
+
     def __getitem__(self, database: Optional[str]) -> Database:
         """
         Override getitem to always return an instance of a database, which includes a lazy-initialized engine.
@@ -173,7 +180,7 @@ class DatabaseContainer(dict):
         """
         if not _DEFAULT_CONNECTION_PARAMS:
             raise DBNotPreparedError(
-                'Unable to connect to a database, set_default_connection_parameters must first be called'
+                "Unable to connect to a database, set_default_connection_parameters must first be called"
             )
 
         if not super().__contains__(database):
@@ -194,7 +201,8 @@ class DatabaseContainerSingleton(DatabaseContainer):
     All instantiations of this class will result in the same instance every time due to the override of
     the __new__ method.
     """
-    def __new__(cls, *args, **kwargs) -> 'DatabaseContainer':
+
+    def __new__(cls, *args, **kwargs) -> "DatabaseContainer":
         instance = cls.__dict__.get("__instance__")
         if instance is not None:
             return instance

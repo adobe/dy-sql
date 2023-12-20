@@ -11,9 +11,9 @@ import pytest
 from dysql import set_default_connection_parameters, databases
 
 
-@pytest.fixture(name='mock_create_engine')
+@pytest.fixture(name="mock_create_engine")
 def mock_create_engine_fixture():
-    create_mock = patch('dysql.databases.sqlalchemy.create_engine')
+    create_mock = patch("dysql.databases.sqlalchemy.create_engine")
     try:
         yield create_mock.start()
     finally:
@@ -28,7 +28,7 @@ def setup_mock_engine(mock_create_engine):
     mock_engine = Mock()
     mock_engine.connect().execution_options().__enter__ = Mock()
     mock_engine.connect().execution_options().__exit__ = Mock()
-    set_default_connection_parameters('fake', 'user', 'password', 'test')
+    set_default_connection_parameters("fake", "user", "password", "test")
 
     # Clear out the databases before attempting to mock anything
     databases.DatabaseContainerSingleton().clear()
@@ -42,7 +42,9 @@ def _verify_query_params(mock_engine, expected_query, expected_args):
 
 
 def _verify_query(mock_engine, expected_query):
-    execute_call = mock_engine.connect.return_value.execution_options.return_value.execute
+    execute_call = (
+        mock_engine.connect.return_value.execution_options.return_value.execute
+    )
     execute_call.assert_called()
 
     query = execute_call.call_args[0][0].text
@@ -50,7 +52,9 @@ def _verify_query(mock_engine, expected_query):
 
 
 def _verify_query_args(mock_engine, expected_args):
-    execute_call = mock_engine.connect.return_value.execution_options.return_value.execute
+    execute_call = (
+        mock_engine.connect.return_value.execution_options.return_value.execute
+    )
     query_args = execute_call.call_args[0][1]
 
     assert query_args

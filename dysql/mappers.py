@@ -23,13 +23,12 @@ class MapperError(Exception):
 
 
 class DbMapResultBase(abc.ABC):
-
     @classmethod
     def get_key_columns(cls):
-        return ['id']
+        return ["id"]
 
     @classmethod
-    def create_instance(cls, *args, **kwargs) -> 'DbMapResultBase':
+    def create_instance(cls, *args, **kwargs) -> "DbMapResultBase":
         """
         Called instead of constructor, used to support different ways of
         creating objects instead of constructors (if desired).
@@ -73,7 +72,7 @@ class DbMapResult(DbMapResultBase):
     def __init__(self, **kwargs):
         self.__dict__ = kwargs
         # pylint: disable=invalid-name
-        if not self.__dict__.get('id'):
+        if not self.__dict__.get("id"):
             self.id = None
 
     def __getitem__(self, field: str) -> Any:
@@ -102,8 +101,8 @@ class DbMapResult(DbMapResultBase):
             else:
                 raw[key] = get_raw(value)
         # Remove the id field if it was never set
-        if raw.get('id') is None:
-            del raw['id']
+        if raw.get("id") is None:
+            del raw["id"]
         return raw
 
     def has(self, field: str) -> bool:
@@ -117,6 +116,7 @@ class BaseMapper(metaclass=abc.ABCMeta):
     """
     Extend this class and implement the map_records method to map the results from a database query.
     """
+
     @abc.abstractmethod
     def map_records(self, records: sqlalchemy.engine.CursorResult) -> Any:
         pass
@@ -186,6 +186,7 @@ class SingleRowMapper(BaseMapper):
     Returns a single mapped result from one or more records. The first record is returned even if
     there are multiple records from the database.
     """
+
     def __init__(self, record_mapper: Optional[Type[DbMapResultBase]] = DbMapResult):
         self.record_mapper = record_mapper
 
@@ -207,6 +208,7 @@ class SingleColumnMapper(BaseMapper):
     Returns the first column value for each record from the database, even if multiple columns are
     defined. This will return a list of scalar values.
     """
+
     def map_records(self, records: sqlalchemy.engine.CursorResult) -> Any:
         results = []
         for record in records:
@@ -221,6 +223,7 @@ class SingleRowAndColumnMapper(BaseMapper):
     Returns the first column in the first record from the database, even if multiple records or
     columns exist. This will return a single scalar or None if there are no records.
     """
+
     def map_records(self, records: sqlalchemy.engine.CursorResult) -> Any:
         for record in records:
             for value in record.values():
@@ -242,9 +245,10 @@ class KeyValueMapper(BaseMapper):
         the each key may have more than 1 result. this will returns a dictionary of lists when set
 
     """
+
     def __init__(self, key_column=0, value_column=1, has_multiple_values_per_key=False):
         if key_column == value_column:
-            raise MapperError('key and value columns cannot be the same')
+            raise MapperError("key and value columns cannot be the same")
 
         self.key_column = key_column
         self.value_column = value_column
