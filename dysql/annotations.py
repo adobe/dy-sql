@@ -11,7 +11,7 @@ from typing import TypeVar, Annotated
 from pydantic import BeforeValidator
 
 # pylint: disable=invalid-name
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 def _transform_csv(value: str) -> T:
@@ -19,7 +19,7 @@ def _transform_csv(value: str) -> T:
         return None
 
     if isinstance(value, str):
-        return list(map(str.strip, value.split(',')))
+        return list(map(str.strip, value.split(",")))
 
     if isinstance(value, list):
         return value

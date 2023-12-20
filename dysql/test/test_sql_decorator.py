@@ -7,8 +7,15 @@ with the terms of the Adobe license agreement accompanying it.
 """
 import pytest
 
-from dysql import sqlupdate, sqlquery, DbMapResult, CountMapper, SingleRowMapper, \
-    QueryData, QueryDataError
+from dysql import (
+    sqlupdate,
+    sqlquery,
+    DbMapResult,
+    CountMapper,
+    SingleRowMapper,
+    QueryData,
+    QueryDataError,
+)
 from dysql.test import mock_create_engine_fixture, setup_mock_engine
 
 
@@ -23,22 +30,26 @@ class TestSqlSelectDecorator:
     @staticmethod
     @pytest.fixture
     def mock_results():
-        return [{
-            'id': 1,
-            'name': 'jack',
-            'email': 'jack@adobe.com',
-            'hobbies': ['golf', 'bikes', 'coding']
-        }, {
-            'id': 2,
-            'name': 'flora',
-            'email': 'flora@adobe.com',
-            'hobbies': ['golf', 'coding']
-        }, {
-            'id': 3,
-            'name': 'Terrence',
-            'email': 'terrence@adobe.com',
-            'hobbies': ['coding', 'watching tv', 'hot dog eating contest']
-        }]
+        return [
+            {
+                "id": 1,
+                "name": "jack",
+                "email": "jack@adobe.com",
+                "hobbies": ["golf", "bikes", "coding"],
+            },
+            {
+                "id": 2,
+                "name": "flora",
+                "email": "flora@adobe.com",
+                "hobbies": ["golf", "coding"],
+            },
+            {
+                "id": 3,
+                "name": "Terrence",
+                "email": "terrence@adobe.com",
+                "hobbies": ["coding", "watching tv", "hot dog eating contest"],
+            },
+        ]
 
     @staticmethod
     @pytest.fixture
@@ -70,8 +81,8 @@ class TestSqlSelectDecorator:
 
     def test_count(self, mock_engine):
         mock_engine.connect.return_value.execution_options.return_value.execute.return_value = [
-            {'count': 2},
-            {'count': 3},
+            {"count": 2},
+            {"count": 3},
         ]
         assert self._select_count() == 2
 
@@ -88,10 +99,12 @@ class TestSqlSelectDecorator:
 
         call_args = mock_engine.connect.return_value.execution_options.return_value.execute.call_args
         assert call_args[0][0].text == "SELECT * FROM my_table WHERE id=:id"
-        assert call_args[0][1] == {'id': 3}
+        assert call_args[0][1] == {"id": 3}
 
     def test_list_results_map(self, mock_results, mock_engine):
-        mock_engine.connect.return_value.execution_options.return_value.execute.return_value = [mock_results[2]]
+        mock_engine.connect.return_value.execution_options.return_value.execute.return_value = [
+            mock_results[2]
+        ]
         results = self._select_filtered(3)
 
         assert len(results) == 1
@@ -100,12 +113,12 @@ class TestSqlSelectDecorator:
     def test_isolation_default(self, mock_engine):
         mock_connect = mock_engine.connect.return_value.execution_options
         self._select_all()
-        mock_connect.assert_called_with(isolation_level='READ_COMMITTED')
+        mock_connect.assert_called_with(isolation_level="READ_COMMITTED")
 
     def test_isolation_default_read_uncommited(self, mock_engine):
         mock_connect = mock_engine.connect.return_value.execution_options
         self._select_uncommitted()
-        mock_connect.assert_called_with(isolation_level='READ_UNCOMMITTED')
+        mock_connect.assert_called_with(isolation_level="READ_UNCOMMITTED")
         mock_connect.return_value.execute.assert_called()
 
     @staticmethod
@@ -130,10 +143,12 @@ class TestSqlSelectDecorator:
     @staticmethod
     @sqlquery()
     def _select_filtered(_id):
-        return QueryData("SELECT * FROM my_table WHERE id=:id", query_params={'id': _id})
+        return QueryData(
+            "SELECT * FROM my_table WHERE id=:id", query_params={"id": _id}
+        )
 
     @staticmethod
-    @sqlquery(isolation_level='READ_UNCOMMITTED')
+    @sqlquery(isolation_level="READ_UNCOMMITTED")
     def _select_uncommitted():
         return QueryData("SELECT * FROM uncommitted")
 
@@ -154,18 +169,18 @@ class TestSqlUpdateDecorator:
         return mock_engine.connect.return_value.execution_options
 
     def test_isolation_default(self, mock_connect):
-        self._update_something({'id': 1, 'value': 'test'})
-        mock_connect.assert_called_with(isolation_level='READ_COMMITTED')
+        self._update_something({"id": 1, "value": "test"})
+        mock_connect.assert_called_with(isolation_level="READ_COMMITTED")
 
     def test_isolation_default_read_uncommited(self, mock_connect):
-        self._update_something_uncommited_isolation({'id': 1, 'value': 'test'})
-        mock_connect.assert_called_with(isolation_level='READ_UNCOMMITTED')
+        self._update_something_uncommited_isolation({"id": 1, "value": "test"})
+        mock_connect.assert_called_with(isolation_level="READ_UNCOMMITTED")
         mock_connect.return_value.begin.assert_called()
         mock_connect.return_value.begin.return_value.commit.assert_called()
         mock_connect.return_value.__exit__.assert_called()
 
     def test_transaction(self, mock_connect):
-        self._update_something({'id': 1, 'value': 'test'})
+        self._update_something({"id": 1, "value": "test"})
         mock_connect().begin.assert_called()
         mock_connect().begin.return_value.commit.assert_called()
         mock_connect().__exit__.assert_called()
@@ -173,16 +188,18 @@ class TestSqlUpdateDecorator:
     def test_transaction_fails(self, mock_connect):
         mock_connect().execute.side_effect = Exception("error")
         with pytest.raises(Exception):
-            self._update_something({'id': 1, 'value': 'test'})
+            self._update_something({"id": 1, "value": "test"})
         mock_connect().begin.return_value.commit.assert_not_called()
         mock_connect().begin.return_value.rollback.assert_called()
         mock_connect().__exit__.assert_called()
 
     def test_execute_passes_values(self, mock_engine):
-        values = {'id': 1, 'value': 'test'}
+        values = {"id": 1, "value": "test"}
         self._update_something(values)
 
-        execute_call = mock_engine.connect.return_value.execution_options.return_value.execute
+        execute_call = (
+            mock_engine.connect.return_value.execution_options.return_value.execute
+        )
         execute_call.assert_called()
 
         execute_call_args = execute_call.call_args[0]
@@ -192,7 +209,9 @@ class TestSqlUpdateDecorator:
     def test_execute_query_values_none(self, mock_engine):
         self._update_something(None)
 
-        execute_call = mock_engine.connect.return_value.execution_options.return_value.execute
+        execute_call = (
+            mock_engine.connect.return_value.execution_options.return_value.execute
+        )
         execute_call.assert_called()
 
         self._expect_args_list(execute_call.call_args_list[0], "INSERT something")
@@ -203,9 +222,9 @@ class TestSqlUpdateDecorator:
 
     def test_execute_multi_yield(self, mock_connect):
         expected_values = [
-            {'id': 1, 'value': 'test 1'},
-            {'id': 2, 'value': 'test 2'},
-            {'id': 3, 'value': 'test 3'},
+            {"id": 1, "value": "test 1"},
+            {"id": 2, "value": "test 2"},
+            {"id": 3, "value": "test 3"},
         ]
         self._update_something_multi_yield(expected_values)
 
@@ -217,55 +236,59 @@ class TestSqlUpdateDecorator:
 
     def test_execute_fails_list_if_multi_false(self):
         expected_values = [
-            {'id': 1, 'value': 'test 1'},
-            {'id': 2, 'value': 'test 2'},
-            {'id': 3, 'value': 'test 3'},
+            {"id": 1, "value": "test 1"},
+            {"id": 2, "value": "test 2"},
+            {"id": 3, "value": "test 3"},
         ]
         with pytest.raises(Exception):
             self._update_list_when_multi_false(expected_values)
 
     def test_execute_multi_yield_and_lists(self, mock_engine):
         expected_values = [
-            {'id': 1, 'value': 'test 1'},
-            {'id': 2, 'value': 'test 2'},
-            {'id': 3, 'value': 'test 3'},
+            {"id": 1, "value": "test 1"},
+            {"id": 2, "value": "test 2"},
+            {"id": 3, "value": "test 3"},
         ]
         other_expected_values = [
-            {'id': 5, 'value': 'test 5'},
-            {'id': 6, 'value': 'test 6'},
-            {'id': 7, 'value': 'test 7'},
+            {"id": 5, "value": "test 5"},
+            {"id": 6, "value": "test 6"},
+            {"id": 7, "value": "test 7"},
         ]
         self._update_yield_with_lists(expected_values, other_expected_values)
 
-        execute_call = mock_engine.connect.return_value.execution_options.return_value.execute
+        execute_call = (
+            mock_engine.connect.return_value.execution_options.return_value.execute
+        )
         assert execute_call.call_count == 2
 
         self._expect_args_list(
             execute_call.call_args_list[0],
             "INSERT some VALUES ( :values__in_0_0, :values__in_0_1 ), ( :values__in_1_0, :values__in_1_1 ), "
-            "( :values__in_2_0, :values__in_2_1 ) "
+            "( :values__in_2_0, :values__in_2_1 ) ",
         )
         self._expect_args_list(
             execute_call.call_args_list[1],
             "INSERT some more VALUES ( :values__other_0_0, :values__other_0_1 ), "
-            "( :values__other_1_0, :values__other_1_1 ), ( :values__other_2_0, :values__other_2_1 ) "
+            "( :values__other_1_0, :values__other_1_1 ), ( :values__other_2_0, :values__other_2_1 ) ",
         )
 
     def test_execute_multi_yield_and_lists_some_no_params(self, mock_engine):
         expected_values = [
-            {'id': 1, 'value': 'test 1'},
-            {'id': 2, 'value': 'test 2'},
-            {'id': 3, 'value': 'test 3'},
+            {"id": 1, "value": "test 1"},
+            {"id": 2, "value": "test 2"},
+            {"id": 3, "value": "test 3"},
         ]
         self._update_yield_with_lists_some_no_params(expected_values)
 
-        execute_call = mock_engine.connect.return_value.execution_options.return_value.execute
+        execute_call = (
+            mock_engine.connect.return_value.execution_options.return_value.execute
+        )
         assert execute_call.call_count == 4
 
         self._expect_args_list(
             execute_call.call_args_list[0],
             "INSERT some VALUES ( :values__in_0_0, :values__in_0_1 ), ( :values__in_1_0, :values__in_1_1 ), "
-            "( :values__in_2_0, :values__in_2_1 ) "
+            "( :values__in_2_0, :values__in_2_1 ) ",
         )
         self._expect_args_list(execute_call.call_args_list[1], "UPDATE some more")
         self._expect_args_list(execute_call.call_args_list[2], "UPDATE some more")
@@ -274,13 +297,17 @@ class TestSqlUpdateDecorator:
     def test_set_foreign_key_checks_default(self, mock_engine):
         self._update_something_no_params()
 
-        execute_call = mock_engine.connect.return_value.execution_options.return_value.execute
+        execute_call = (
+            mock_engine.connect.return_value.execution_options.return_value.execute
+        )
         assert execute_call.call_count == 1
 
     def test_set_foreign_key_checks_true(self, mock_engine):
         self._update_without_foreign_key_checks()
 
-        execute_call = mock_engine.connect.return_value.execution_options.return_value.execute
+        execute_call = (
+            mock_engine.connect.return_value.execution_options.return_value.execute
+        )
         assert execute_call.call_count == 4
         assert execute_call.call_args_list[0][0][0].text == "SET FOREIGN_KEY_CHECKS=0"
         assert execute_call.call_args_list[-1][0][0].text == "SET FOREIGN_KEY_CHECKS=1"
@@ -301,7 +328,7 @@ class TestSqlUpdateDecorator:
         return QueryData("INSERT something", query_params=values)
 
     @staticmethod
-    @sqlupdate(isolation_level='READ_UNCOMMITTED')
+    @sqlupdate(isolation_level="READ_UNCOMMITTED")
     def _update_something_uncommited_isolation(values):
         return QueryData(f"INSERT WITH uncommitted {values}")
 
@@ -337,11 +364,11 @@ class TestSqlUpdateDecorator:
         """
         yield QueryData(
             "INSERT some {values__in}",
-            template_params=_get_template_params('values__in', multiple_values)
+            template_params=_get_template_params("values__in", multiple_values),
         )
         yield QueryData(
             "INSERT some more {values__other}",
-            template_params=_get_template_params('values__other', other_values)
+            template_params=_get_template_params("values__other", other_values),
         )
 
     @staticmethod
@@ -353,7 +380,7 @@ class TestSqlUpdateDecorator:
         """
         yield QueryData(
             "INSERT some {values__in}",
-            template_params=_get_template_params('values__in', multiple_values)
+            template_params=_get_template_params("values__in", multiple_values),
         )
         yield QueryData("UPDATE some more")
         yield QueryData("UPDATE some more")
@@ -361,14 +388,14 @@ class TestSqlUpdateDecorator:
 
 
 def _get_template_params(key, values):
-    '''
+    """
     template parameters is handled here as an example of what you might end up
     doing. usually data coming in is going to be a list
 
     :param key: the template key we want to use to build our template with
     :param values: the list of objects or mariadbmaps,
     :return: a keyed list of tuples or mariadbmaps
-    '''
+    """
     if isinstance(values[0], DbMapResult):
         return {key: values}
-    return {key: [(v['id'], v['value']) for v in values]}
+    return {key: [(v["id"], v["value"]) for v in values]}

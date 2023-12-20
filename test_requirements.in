@@ -1,0 +1,10 @@
+pytest>=6.2.4
+pytest-randomly>=3.10.1
+pytest-cov>=2.12.1
+ruff>=0.1.7
+ruff-lsp>=0.0.45
+# Python 3.8 only supports up to 3.5.0
+pre-commit<3.6
+# Lock major version only
+docker<7
+tox-pyenv

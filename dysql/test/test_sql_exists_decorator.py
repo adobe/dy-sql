@@ -15,29 +15,28 @@ from dysql.test import mock_create_engine_fixture, setup_mock_engine
 
 _ = mock_create_engine_fixture
 
-TRUE_QUERY = 'SELECT 1 from table'
-TRUE_QUERY_PARAMS = 'SELECT 1 from table where key=:key'
-FALSE_QUERY = 'SELECT 1 from false_table '
-FALSE_QUERY_PARAMS = 'SELECT 1 from table where key=:key'
-TRUE_PARAMS = {'key': 123}
-FALSE_PARAMS = {'key': 456}
-SELECT_EXISTS_QUERY = 'SELECT 1 WHERE EXISTS ( {} )'
-SELECT_EXISTS_NO_WHERE_QUERY = 'SELECT EXISTS ( {} )'
+TRUE_QUERY = "SELECT 1 from table"
+TRUE_QUERY_PARAMS = "SELECT 1 from table where key=:key"
+FALSE_QUERY = "SELECT 1 from false_table "
+FALSE_QUERY_PARAMS = "SELECT 1 from table where key=:key"
+TRUE_PARAMS = {"key": 123}
+FALSE_PARAMS = {"key": 456}
+SELECT_EXISTS_QUERY = "SELECT 1 WHERE EXISTS ( {} )"
+SELECT_EXISTS_NO_WHERE_QUERY = "SELECT EXISTS ( {} )"
 EXISTS_QUERIES = {
-    'true': SELECT_EXISTS_QUERY.format(TRUE_QUERY),
-    'false': SELECT_EXISTS_QUERY.format(FALSE_QUERY),
-    'true_params': SELECT_EXISTS_QUERY.format(TRUE_QUERY_PARAMS),
-    'false_params': SELECT_EXISTS_QUERY.format(FALSE_QUERY_PARAMS),
-    'true_no_where': SELECT_EXISTS_NO_WHERE_QUERY.format(TRUE_QUERY),
-    'false_no_where': SELECT_EXISTS_NO_WHERE_QUERY.format(FALSE_QUERY)
+    "true": SELECT_EXISTS_QUERY.format(TRUE_QUERY),
+    "false": SELECT_EXISTS_QUERY.format(FALSE_QUERY),
+    "true_params": SELECT_EXISTS_QUERY.format(TRUE_QUERY_PARAMS),
+    "false_params": SELECT_EXISTS_QUERY.format(FALSE_QUERY_PARAMS),
+    "true_no_where": SELECT_EXISTS_NO_WHERE_QUERY.format(TRUE_QUERY),
+    "false_no_where": SELECT_EXISTS_NO_WHERE_QUERY.format(FALSE_QUERY),
 }
 
 
 @pytest.fixture(autouse=True)
 def mock_engine_fixture(mock_create_engine):
     mock_engine = setup_mock_engine(mock_create_engine)
-    mock_engine.connect.return_value.execution_options.return_value.execute.side_effect = \
-        _check_query_and_return_result
+    mock_engine.connect.return_value.execution_options.return_value.execute.side_effect = _check_query_and_return_result
     mock_engine.connect().execution_options().__enter__ = Mock()
     mock_engine.connect().execution_options().__exit__ = Mock()
 
@@ -64,7 +63,7 @@ def test_exists_query_contains_with_exists_true():
     exists(exists()) will always give a 'true' result
     """
     # should match against the same query, should still match
-    assert _exists_specified('true')
+    assert _exists_specified("true")
 
 
 def test_exists_query_contains_with_exists_false():
@@ -73,7 +72,7 @@ def test_exists_query_contains_with_exists_false():
     exists(exists()) will always give a 'true' result
     """
     # should match against the same query, should still match
-    assert not _exists_specified('false')
+    assert not _exists_specified("false")
 
 
 def test_exists_without_where_true():
@@ -105,12 +104,12 @@ def test_exists_query_starts_with_exists_handles_whitespace():
 
 @sqlexists()
 def _select_exists_no_where_false():
-    return QueryData(EXISTS_QUERIES['false_no_where'])
+    return QueryData(EXISTS_QUERIES["false_no_where"])
 
 
 @sqlexists()
 def _select_exists_no_where_true():
-    return QueryData(EXISTS_QUERIES['true_no_where'])
+    return QueryData(EXISTS_QUERIES["true_no_where"])
 
 
 @sqlexists()
@@ -140,8 +139,11 @@ def _exists_false_params():
 
 @sqlexists()
 def _exists_whitespace():
-    return QueryData("""
-            """ + TRUE_QUERY)
+    return QueryData(
+        """
+            """
+        + TRUE_QUERY
+    )
 
 
 def _check_query_and_return_result(query, params):
@@ -154,11 +156,11 @@ def _check_query_and_return_result(query, params):
     scalar_mock = Mock()
     # default mock responses to true, then we only handle setting false responses
     scalar_mock.scalar.return_value = 1
-    if query.text == EXISTS_QUERIES['true_params']:
-        assert params.get('key') == 123
-    if query.text == EXISTS_QUERIES['false_params']:
-        assert params.get('key') == 456
+    if query.text == EXISTS_QUERIES["true_params"]:
+        assert params.get("key") == 123
+    if query.text == EXISTS_QUERIES["false_params"]:
+        assert params.get("key") == 456
         scalar_mock.scalar.return_value = 0
-    elif query.text == EXISTS_QUERIES['false']:
+    elif query.text == EXISTS_QUERIES["false"]:
         scalar_mock.scalar.return_value = 0
     return scalar_mock
