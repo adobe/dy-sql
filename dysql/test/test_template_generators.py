@@ -17,6 +17,7 @@ class TestTemplatesGenerators:
 
     number_values = [1, 2, 3, 4]
     string_values = ["1", "2", "3", "4"]
+    set_values = {1, 2, 3, 4}
     insert_values = [("ironman", 1), ("batman", 2)]
     tuple_values = [(1, 2), (3, 4)]
     query = "column_a IN ( :column_a_0, :column_a_1, :column_a_2, :column_a_3 )"
@@ -41,6 +42,12 @@ class TestTemplatesGenerators:
                 TemplateGenerators.in_column,
                 "table.column_a",
                 number_values,
+                query_with_table,
+            ),
+            (
+                TemplateGenerators.in_column,
+                "table.column_a",
+                set_values,
                 query_with_table,
             ),
             (TemplateGenerators.in_column, "column_a", string_values, query),
@@ -75,6 +82,12 @@ class TestTemplatesGenerators:
                 TemplateGenerators.not_in_column,
                 "table.column_a",
                 string_values,
+                not_query_with_table,
+            ),
+            (
+                TemplateGenerators.not_in_column,
+                "table.column_a",
+                set_values,
                 not_query_with_table,
             ),
             (TemplateGenerators.not_in_column, "column_a", [], "1 = 1"),
@@ -122,6 +135,12 @@ class TestTemplatesGenerators:
             ),
             (
                 TemplateGenerators.in_column,
+                "column_a",
+                set_values,
+                parameter_numbers,
+            ),
+            (
+                TemplateGenerators.in_column,
                 "table.column_a",
                 number_values,
                 with_table_parameter_numbers,
@@ -156,6 +175,12 @@ class TestTemplatesGenerators:
                 "column_a",
                 string_values,
                 parameter_strings,
+            ),
+            (
+                TemplateGenerators.not_in_column,
+                "column_a",
+                set_values,
+                parameter_numbers,
             ),
             (
                 TemplateGenerators.not_in_column,

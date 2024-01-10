@@ -136,7 +136,7 @@ class TemplateGenerators:
     ) -> Tuple[str, Optional[dict]]:
         param_values = {}
         parameterized_keys = []
-        if not isinstance(values, (list, tuple)):
+        if not isinstance(values, (list, tuple, set)):
             param_values[key] = values
             parameterized_keys.append(key)
         else:
