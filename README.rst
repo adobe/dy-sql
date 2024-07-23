@@ -443,7 +443,7 @@ a follow up relational table within the same transaction scope.
 
 .. code-block:: python
 
-    @sqlupdate(on_success=_handle_insert_success)
+    @sqlupdate()
     def insert_items_with_callback(item_dict):
         insert_values_1, insert_params_1 = TemplateGenerator.values('table1values', _get_values_for_1_from_items(item_dict))
         insert_values_2, insert_params_2 = TemplateGenerator.values('table2values', _get_values_for_2_from_items(item_dict))
@@ -453,24 +453,41 @@ a follow up relational table within the same transaction scope.
     def _handle_insert_success(item_dict):
         #  callback logic here happens after the transaction is complete
 
-In order to do this, set use_get_last_insert_id=True in the sqludate decorator, and add a get_last_insert_id method as a kwarg to your
-function. This method will be overwritten by the sqlupdate decorator so just set it equal to None.
+`get_last_insert_id` is a placeholder kwarg that will be automatically overwritten by the sqlupdate decorator at run time.
+Therefore, the assigned value in the function definition does not matter.
 
 
-.. note::
-    You should always define the get_last_insert_id method as a kwarg equal None in the function signature. This is because
-    the sqlupdate decorator will overwrite the kwarg with the correct method to get the last insert id.
-    This is only available for the ``sqlupdate`` decorator
+Using `get_last_insert_id` gives you the most recently set id. You can leverage this for later queries yielded, or you could
+use it and set ids in a reference object passed in for access to the ides outside of the sqlupdate function.
+
 
 .. code-block:: python
 
-    @sqlupdate(use_get_last_insert_id=True)
+    @sqlupdate()
     def insert_item_with_get_last_insert(get_last_insert_id=None, item_dict):
         insert_values, insert_params = TemplateGenerator.values('table1values', _get_values_from_items(item_dict))
         yield QueryData(f'INSERT INTO table_1 {insert_values}', query_params=insert_values_params)
         last_id = get_last_insert_id()
         yield QueryData(f'INSERT INTO related_table_1 (table_1_id, value) VALUES (:table_1_id, :value)',
                 query_params={'table_1_id': last_id, 'value': 'some_value'})
+
+.. note::
+    `get_last_insert_id` will get you the last inserted id from the most recently table inserted with an autoincrement.
+    Be sure to call `get_last_insert_id` right after you yield the query that inserts the record you need the id for.
+
+
+.. code-block:: python
+
+    class Item(BaseModel):
+        id: int | None = None
+        name: str
+
+    @sqlupdate()
+    def insert_items_and_update_ids(items: List[Item], get_last_insert_id = None)
+        for item in items:
+            yield QueryData("INSERT INTO table (name) VALUES (:name)", query_params={'name': item.name})
+            last_id = get_last_insert_id()
+            item.id = last_id
 
 @sqlexists
 ~~~~~~~~~~

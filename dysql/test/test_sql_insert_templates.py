@@ -154,7 +154,7 @@ def insert_into_single_value(names):
 
 
 def test_last_insert_id():
-    @sqlupdate(use_get_last_insert_id=True)
+    @sqlupdate()
     def insert(get_last_insert_id=None):
         yield QueryData("INSERT INTO get_last(name) VALUES ('Tom')")
         assert get_last_insert_id
@@ -169,9 +169,7 @@ def test_last_insert_id_removed_before_callback():
     def callback(**kwargs):
         assert "get_last_insert_id" not in kwargs
 
-    @sqlupdate(
-        use_get_last_insert_id=True,
-    )
+    @sqlupdate()
     def insert(get_last_insert_id=None):
         assert get_last_insert_id
         yield QueryData("INSERT INTO get_last(name) VALUES ('Tom')")

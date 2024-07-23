@@ -183,7 +183,6 @@ def sqlupdate(
     isolation_level="READ_COMMITTED",
     disable_foreign_key_checks=False,
     on_success=None,
-    use_get_last_insert_id=False,
 ):
     """
     :param isolation_level should specify whether we can read data from transactions that are not
@@ -201,18 +200,6 @@ def sqlupdate(
         Note: this will work as expected when a normal transaction completes successfully and if a
         transaction rolls back this will be left in a clean state as expected before executing
         anything
-    :param use_get_last_insert_id: If set to True, the function will be added to the kwargs and passed
-        into the function we are calling. This will allow us to get the last insert id from the database
-        within the transaction scope of a give sql update method
-
-        This could be particularly helpful when you are inserting into a table and
-        want to follow up with another insert that requires the last insert id or when
-        you might want to use the last insert id in the object passed in.
-
-        Note: This will only give you the id of the last record so if you insert multiple values you will only
-        be able to get the last id inserted out of all the values inserted. if you needed the id for each value
-        you were inserting you would need to yield insert each row and get_last_insert_id after each insert.
-
     Examples::
 
         @sqlupdate
@@ -223,7 +210,7 @@ def sqlupdate(
         def delete_example(ids)
             return QueryData("DELETE FROM table WHERE id=:id", { "id": id })
 
-        @sqlupdate(use_get_last_insert_id=True)
+        @sqlupdate()
         def insert_with_relations(get_last_insert_id = None):
             yield QueryData("INSERT INTO table(value) VALUES (:value)", key_values)
             id = get_last_insert_id()
@@ -247,7 +234,7 @@ def sqlupdate(
                 if disable_foreign_key_checks:
                     conn_manager.execute_query("SET FOREIGN_KEY_CHECKS=0")
                 last_insert_method = "get_last_insert_id"
-                if use_get_last_insert_id:
+                if last_insert_method in inspect.signature(func).parameters:
                     kwargs[last_insert_method] = lambda: conn_manager.execute_query(
                         "SELECT LAST_INSERT_ID()"
                     ).scalar()
