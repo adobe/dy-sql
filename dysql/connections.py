@@ -124,7 +124,7 @@ def sqlquery(
                 actual_mapper = actual_mapper()
 
             with _ConnectionManager(
-                    func, isolation_level, False, *args, **kwargs
+                func, isolation_level, False, *args, **kwargs
             ) as conn_manager:
                 data = func(*args, **kwargs)
                 query, params = get_query_data(data)
@@ -161,7 +161,7 @@ def sqlexists(isolation_level="READ_COMMITTED"):
         def handle_query(*args, **kwargs):
             functools.wraps(func, handle_query)
             with _ConnectionManager(
-                    func, isolation_level, False, *args, **kwargs
+                func, isolation_level, False, *args, **kwargs
             ) as conn_manager:
                 data = func(*args, **kwargs)
                 query, params = get_query_data(data)
@@ -183,7 +183,7 @@ def sqlupdate(
     isolation_level="READ_COMMITTED",
     disable_foreign_key_checks=False,
     on_success=None,
-    use_get_last_insert_id=False
+    use_get_last_insert_id=False,
 ):
     """
     :param isolation_level should specify whether we can read data from transactions that are not
@@ -242,13 +242,15 @@ def sqlupdate(
         def handle_query(*args, **kwargs):
             functools.wraps(func)
             with _ConnectionManager(
-                    func, isolation_level, True, *args, **kwargs
+                func, isolation_level, True, *args, **kwargs
             ) as conn_manager:
                 if disable_foreign_key_checks:
                     conn_manager.execute_query("SET FOREIGN_KEY_CHECKS=0")
-                last_insert_method = 'get_last_insert_id'
+                last_insert_method = "get_last_insert_id"
                 if use_get_last_insert_id:
-                    kwargs[last_insert_method] = lambda: conn_manager.execute_query("SELECT LAST_INSERT_ID()").scalar()
+                    kwargs[last_insert_method] = lambda: conn_manager.execute_query(
+                        "SELECT LAST_INSERT_ID()"
+                    ).scalar()
                 if inspect.isgeneratorfunction(func):
                     logger.debug("handling each query before committing transaction")
 
