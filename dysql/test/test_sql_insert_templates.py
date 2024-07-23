@@ -22,8 +22,18 @@ _ = mock_create_engine_fixture
 
 @pytest.fixture(name="mock_engine", autouse=True)
 def mock_engine_fixture(mock_create_engine):
+
+    initial_id = 0
+    def handle_execute(query = None, args = None):
+        nonlocal initial_id
+        if "INSERT INTO get_last(name)" in query.text:
+            initial_id += 1
+        if "SELECT LAST_INSERT_ID()" == query.text:
+            return type("Result", (), {"scalar": lambda: initial_id})
+        return []
     mock_engine = setup_mock_engine(mock_create_engine)
-    mock_engine.connect().execution_options().execute.side_effect = lambda x, y: []
+    execute_mock = mock_engine.connect().execution_options().execute
+    execute_mock.side_effect = handle_execute
     return mock_engine
 
 
@@ -140,3 +150,26 @@ def insert_into_single_value(names):
     return QueryData(
         "INSERT INTO table(name) {values__name_col}", template_params=template_params
     )
+
+
+def test_last_insert_id():
+    @sqlupdate(use_get_last_insert_id=True)
+    def insert(get_last_insert_id = None):
+        yield QueryData("INSERT INTO get_last(name) VALUES ('Tom')")
+        assert get_last_insert_id
+        assert get_last_insert_id() == 1
+        yield QueryData("INSERT INTO get_last(name) VALUES ('Jerry')")
+        assert get_last_insert_id() == 2
+    insert()
+
+def test_last_insert_id_removed_before_callback():
+    def callback(**kwargs):
+        assert "get_last_insert_id" not in kwargs
+
+    @sqlupdate(use_get_last_insert_id=True,)
+    def insert( get_last_insert_id = None):
+        assert get_last_insert_id
+        yield QueryData("INSERT INTO get_last(name) VALUES ('Tom')")
+        yield QueryData("INSERT INTO get_last(name) VALUES ('Jerry')")
+        assert get_last_insert_id() == 2
+    insert()

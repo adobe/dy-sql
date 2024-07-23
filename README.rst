@@ -406,9 +406,9 @@ query returning a dictionary where there are multiple results under each key. No
     def get_status_by_name():
         return QueryData("SELECT status, name FROM table")
 
-
+==========
 @sqlupdate
-~~~~~~~~~~
+==========
 Handles any SQL that is not a select. This is primarily, but not limited to, ``insert``, ``update``, and ``delete``.
 
 
@@ -418,6 +418,10 @@ Handles any SQL that is not a select. This is primarily, but not limited to, ``i
     def insert_items(item_dict):
         return QueryData("INSERT INTO", template_params={'in__item_id':item_id_list})
 
+
+---------------------------------
+multiple queries in a transaction
+---------------------------------
 You can yield multiple QueryData objects. This is done in a transaction and it can be helpful for data integrity or just
 a nice clean way to run a set of updates.
 
@@ -430,7 +434,12 @@ a nice clean way to run a set of updates.
         yield QueryData(f'INSERT INTO table_1 {insert_values_1}', query_params=insert_values_params_1)
         yield QueryData(f'INSERT INTO table_2 {insert_values_2}', query_params=insert_values_params_2)
 
-if needed you can assign a callback to be ran after a query or set of queries completes successfully
+--------------------------
+getting the last insert id
+--------------------------
+You can assign a callback to be ran after a query or set of queries completes successfully. This is useful when you need
+to get the last insert id for a table that has an auto incrementing id field. This allows you to set it as a parameter on
+a follow up relational table within the same transaction scope.
 
 .. code-block:: python
 
@@ -443,6 +452,25 @@ if needed you can assign a callback to be ran after a query or set of queries co
 
     def _handle_insert_success(item_dict):
         #  callback logic here happens after the transaction is complete
+
+In order to do this, set use_get_last_insert_id=True in the sqludate decorator, and add a get_last_insert_id method as a kwarg to your
+function. This method will be overwritten by the sqlupdate decorator so just set it equal to None.
+
+
+.. note::
+    You should always define the get_last_insert_id method as a kwarg equal None in the function signature. This is because
+    the sqlupdate decorator will overwrite the kwarg with the correct method to get the last insert id.
+    This is only available for the ``sqlupdate`` decorator
+
+.. code-block:: python
+
+    @sqlupdate(use_get_last_insert_id=True)
+    def insert_item_with_get_last_insert(get_last_insert_id=None, item_dict):
+        insert_values, insert_params = TemplateGenerator.values('table1values', _get_values_from_items(item_dict))
+        yield QueryData(f'INSERT INTO table_1 {insert_values}', query_params=insert_values_params)
+        last_id = get_last_insert_id()
+        yield QueryData(f'INSERT INTO related_table_1 (table_1_id, value) VALUES (:table_1_id, :value)',
+                query_params={'table_1_id': last_id, 'value': 'some_value'})
 
 @sqlexists
 ~~~~~~~~~~
