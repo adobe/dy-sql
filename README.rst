@@ -406,9 +406,9 @@ query returning a dictionary where there are multiple results under each key. No
     def get_status_by_name():
         return QueryData("SELECT status, name FROM table")
 
-
+==========
 @sqlupdate
-~~~~~~~~~~
+==========
 Handles any SQL that is not a select. This is primarily, but not limited to, ``insert``, ``update``, and ``delete``.
 
 
@@ -418,6 +418,10 @@ Handles any SQL that is not a select. This is primarily, but not limited to, ``i
     def insert_items(item_dict):
         return QueryData("INSERT INTO", template_params={'in__item_id':item_id_list})
 
+
+---------------------------------
+multiple queries in a transaction
+---------------------------------
 You can yield multiple QueryData objects. This is done in a transaction and it can be helpful for data integrity or just
 a nice clean way to run a set of updates.
 
@@ -430,11 +434,16 @@ a nice clean way to run a set of updates.
         yield QueryData(f'INSERT INTO table_1 {insert_values_1}', query_params=insert_values_params_1)
         yield QueryData(f'INSERT INTO table_2 {insert_values_2}', query_params=insert_values_params_2)
 
-if needed you can assign a callback to be ran after a query or set of queries completes successfully
+--------------------------
+getting the last insert id
+--------------------------
+You can assign a callback to be ran after a query or set of queries completes successfully. This is useful when you need
+to get the last insert id for a table that has an auto incrementing id field. This allows you to set it as a parameter on
+a follow up relational table within the same transaction scope.
 
 .. code-block:: python
 
-    @sqlupdate(on_success=_handle_insert_success)
+    @sqlupdate()
     def insert_items_with_callback(item_dict):
         insert_values_1, insert_params_1 = TemplateGenerator.values('table1values', _get_values_for_1_from_items(item_dict))
         insert_values_2, insert_params_2 = TemplateGenerator.values('table2values', _get_values_for_2_from_items(item_dict))
@@ -443,6 +452,42 @@ if needed you can assign a callback to be ran after a query or set of queries co
 
     def _handle_insert_success(item_dict):
         #  callback logic here happens after the transaction is complete
+
+`get_last_insert_id` is a placeholder kwarg that will be automatically overwritten by the sqlupdate decorator at run time.
+Therefore, the assigned value in the function definition does not matter.
+
+
+Using `get_last_insert_id` gives you the most recently set id. You can leverage this for later queries yielded, or you could
+use it and set ids in a reference object passed in for access to the ides outside of the sqlupdate function.
+
+
+.. code-block:: python
+
+    @sqlupdate()
+    def insert_item_with_get_last_insert(get_last_insert_id=None, item_dict):
+        insert_values, insert_params = TemplateGenerator.values('table1values', _get_values_from_items(item_dict))
+        yield QueryData(f'INSERT INTO table_1 {insert_values}', query_params=insert_values_params)
+        last_id = get_last_insert_id()
+        yield QueryData(f'INSERT INTO related_table_1 (table_1_id, value) VALUES (:table_1_id, :value)',
+                query_params={'table_1_id': last_id, 'value': 'some_value'})
+
+.. note::
+    `get_last_insert_id` will get you the last inserted id from the most recently table inserted with an autoincrement.
+    Be sure to call `get_last_insert_id` right after you yield the query that inserts the record you need the id for.
+
+
+.. code-block:: python
+
+    class Item(BaseModel):
+        id: int | None = None
+        name: str
+
+    @sqlupdate()
+    def insert_items_and_update_ids(items: List[Item], get_last_insert_id = None)
+        for item in items:
+            yield QueryData("INSERT INTO table (name) VALUES (:name)", query_params={'name': item.name})
+            last_id = get_last_insert_id()
+            item.id = last_id
 
 @sqlexists
 ~~~~~~~~~~
