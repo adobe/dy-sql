@@ -206,20 +206,20 @@ class MariaDbTestManager(DbTestManagerBase):
 
     def _create_test_db(self) -> None:
         self._run(
-            f'mysql -p{self.password} -h{self.host} -N -e "DROP DATABASE IF EXISTS {self.db_name}"'
+            f'mariadb -p{self.password} -h{self.host} -N -e "DROP DATABASE IF EXISTS {self.db_name}"'
         )
         self._run(
-            f'mysql -p{self.password} -h{self.host} -s -N -e "CREATE DATABASE IF NOT EXISTS {self.db_name}"'
+            f'mariadb -p{self.password} -h{self.host} -s -N -e "CREATE DATABASE IF NOT EXISTS {self.db_name}"'
         )
         if self.schema_db_name:
             self._run(
                 f"mysqldump --no-data -p{self.password} {self.schema_db_name} -h{self.host} "
-                f"| mysql -p{self.password} {self.db_name} -h{self.host}"
+                f"| mariadb -p{self.password} {self.db_name} -h{self.host}"
             )
 
     def _tear_down_test_db(self) -> None:
         self._run(
-            f'echo "DROP DATABASE IF EXISTS {self.db_name} " | mysql -p{self.password} -h{self.host}'
+            f'echo "DROP DATABASE IF EXISTS {self.db_name} " | mariadb -p{self.password} -h{self.host}'
         )
 
     @sqlquery(mapper=CountMapper())
