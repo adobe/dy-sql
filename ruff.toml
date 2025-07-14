@@ -4,7 +4,6 @@ preview = true
 extend-select = ["CPY"]
 
 [extend-per-file-ignores]
-"setup.py" = ["CPY"]
 "dysql/version.py" = ["CPY"]
 
 [lint.flake8-copyright]
