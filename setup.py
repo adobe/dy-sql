@@ -6,7 +6,7 @@ import types
 from setuptools import setup, find_packages
 
 
-BASE_VERSION = "3.0"
+BASE_VERSION = "3.1"
 SOURCE_DIR = os.path.dirname(os.path.abspath(__file__))
 DYSQL_DIR = os.path.join(SOURCE_DIR, "dysql")
 VERSION_FILE = os.path.join(DYSQL_DIR, "version.py")
