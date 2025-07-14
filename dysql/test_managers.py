@@ -49,7 +49,7 @@ class DbTestManagerBase(abc.ABC):
         :param username: the username to access the test database
         :param password: the password to access the test database
         :param db_name: the name of the test database
-        :param schema_db_name: the name of the DB to duplicate schema from (using mysqldump)
+        :param schema_db_name: the name of the DB to duplicate schema from (using mariadb-dump)
         :param docker_container: the name of the docker container where the database is running (if in docker)
         :param keep_db: This prevents teardown from removing the created database after running tests
                         which can be helpful in debugging
@@ -184,7 +184,7 @@ class MariaDbTestManager(DbTestManagerBase):
     ):  # pylint: disable=too-many-arguments
         """
         :param db_name: the name you want for your test database
-        :param schema_db_name: the name of the DB to duplicate schema from (using mysqldump)
+        :param schema_db_name: the name of the DB to duplicate schema from (using mariadb-dump)
         :param echo_queries: True if you want to see queries
         :param keep_db: This prevents teardown from removing the created DB after running tests
                         which can be helpful in debugging
@@ -206,20 +206,20 @@ class MariaDbTestManager(DbTestManagerBase):
 
     def _create_test_db(self) -> None:
         self._run(
-            f'mysql -p{self.password} -h{self.host} -N -e "DROP DATABASE IF EXISTS {self.db_name}"'
+            f'mariadb -p{self.password} -h{self.host} -N -e "DROP DATABASE IF EXISTS {self.db_name}"'
         )
         self._run(
-            f'mysql -p{self.password} -h{self.host} -s -N -e "CREATE DATABASE IF NOT EXISTS {self.db_name}"'
+            f'mariadb -p{self.password} -h{self.host} -s -N -e "CREATE DATABASE IF NOT EXISTS {self.db_name}"'
         )
         if self.schema_db_name:
             self._run(
-                f"mysqldump --no-data -p{self.password} {self.schema_db_name} -h{self.host} "
-                f"| mysql -p{self.password} {self.db_name} -h{self.host}"
+                f"mariadb-dump --no-data -p{self.password} {self.schema_db_name} -h{self.host} "
+                f"| mariadb -p{self.password} {self.db_name} -h{self.host}"
             )
 
     def _tear_down_test_db(self) -> None:
         self._run(
-            f'echo "DROP DATABASE IF EXISTS {self.db_name} " | mysql -p{self.password} -h{self.host}'
+            f'echo "DROP DATABASE IF EXISTS {self.db_name} " | mariadb -p{self.password} -h{self.host}'
         )
 
     @sqlquery(mapper=CountMapper())

@@ -1,4 +1,4 @@
--e .
-
-# Used in development, and as an extra
-pydantic>2
+# SQLAlchemy 2+ is not yet supported
+sqlalchemy<2
+# now using features only found in pydantic 2+
+pydantic>=2
