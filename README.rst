@@ -20,6 +20,15 @@ Installation
 
     pip install dy-sql
 
+Development Setup
+=================
+
+To set up the development environment:
+
+.. code-block::
+
+    uv sync
+
 Component Breakdown
 ===================
 * **set_default_connection_parameters** - this function needs to be used to set the database parameters on

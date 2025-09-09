@@ -5,6 +5,7 @@ All Rights Reserved.
 NOTICE: Adobe permits you to use, modify, and distribute this file in accordance
 with the terms of the Adobe license agreement accompanying it.
 """
+
 import re
 
 from typing import Iterable, Optional, Tuple, Union
@@ -254,7 +255,7 @@ def __validate_keys_clean_query(query, template_params):
     validated_keys = []
     for groups in re.findall(LIST_TEMPLATE_REGEX, query):
         # check first group for the full key
-        key = f'{groups[2]}__{groups[3] if groups[3] else ""}{groups[4]}'
+        key = f"{groups[2]}__{groups[3] if groups[3] else ''}{groups[4]}"
         validated_keys.append(key)
         missing_keys = []
 

@@ -1,6 +1,6 @@
 [build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["uv_build"]
+build-backend = "uv_build"
 
 [project]
 name = "dy-sql"
@@ -12,13 +12,42 @@ authors = [
     {name = "Adobe", email = "noreply@adobe.com"}
 ]
 urls = { "Homepage" = "https://github.com/adobe/dy-sql" }
+version = "3.1"
+dependencies = [
+    # SQLAlchemy 2+ is not yet supported
+    "sqlalchemy<2",
+    # now using features only found in pydantic 2+
+    "pydantic>=2",
+]
 
-dynamic = ["version", "dependencies", "optional-dependencies"]
+[dependency-groups]
+dev = [
+    "pytest>=6.2.4",
+    "pytest-randomly>=3.10.1",
+    "pytest-cov>=2.12.1",
+    "ruff>=0.12.7",
+    "ruff-lsp>=0.0.45",
+    "pre-commit>=3.6",
+    "docker>=7",
+]
 
-[tool.setuptools.dynamic]
-dependencies = {file = ["requirements.txt"]}
-optional-dependencies = {test = { file = ["test_requirements.txt"] }}
-version = {attr = "dysql.version.__version__"}
+[tool.uv.build-backend]
+module-name = "dysql"
+module-root = ""
+source-exclude = ["dysql/test"]
+wheel-exclude = ["dysql/test"]
 
-[tool.setuptools.packages.find]
-exclude = ["*.tests", "*.tests.*", "tests.*", "tests"]
+[tool.ruff.lint]
+# Enable the copyright rule
+preview = true
+extend-select = ["CPY"]
+
+[tool.ruff.lint.flake8-copyright]
+min-file-size = 200
+notice-rgx = '''"""
+Copyright [(2)\d{3}]* Adobe
+All Rights Reserved.
+
+NOTICE: Adobe permits you to use, modify, and distribute this file in accordance
+with the terms of the Adobe license agreement accompanying it.
+"""'''
