@@ -90,7 +90,6 @@ jobs:
     - name: Build
       run: uv build
     - name: Check upload
-      # packaging needs updating due to https://github.com/pypa/twine/issues/1216
       run: uv run --with twine twine check dist/*
     - name: Publish to PyPi
       uses: pypa/gh-action-pypi-publish@release/v1
