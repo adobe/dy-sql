@@ -214,7 +214,7 @@ class MariaDbTestManager(DbTestManagerBase):
         )
         if self.schema_db_name:
             self._run(
-                f"mariadb-dump --no-data -p{self.password} {self.schema_db_name} -h{self.host} "
+                f"mariadb-dump --no-data --routines -p{self.password} {self.schema_db_name} -h{self.host} "
                 f"| mariadb -p{self.password} {self.db_name} -h{self.host}"
             )
 
