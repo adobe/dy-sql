@@ -24,11 +24,13 @@ from .connections import (
     sqlupdate,
 )
 from .databases import (
+    get_default_database_key,
     is_set_current_database_supported,
     reset_current_database,
     set_current_database,
     set_database_init_hook,
     set_default_connection_parameters,
+    set_default_database_key,
 )
 from .multitenancy import use_database_tenant, tenant_database_manager
 from .exceptions import DBNotPreparedError
@@ -49,11 +51,13 @@ __all__ = [
     "sqlexists",
     "sqlquery",
     "sqlupdate",
+    "get_default_database_key",
     "is_set_current_database_supported",
     "reset_current_database",
     "set_current_database",
     "set_database_init_hook",
     "set_default_connection_parameters",
+    "set_default_database_key",
     "use_database_tenant",
     "tenant_database_manager",
     "DBNotPreparedError",

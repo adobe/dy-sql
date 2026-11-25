@@ -14,10 +14,13 @@ from time import sleep
 from typing import Optional
 
 from .connections import sqlquery
+from .exceptions import DBNotPreparedError
 from .databases import (
+    _get_explicit_default_database_key,
     is_set_current_database_supported,
     set_current_database,
     set_default_connection_parameters,
+    set_default_database_key,
 )
 from .mappers import CountMapper
 from .query_utils import QueryData
@@ -64,6 +67,7 @@ class DbTestManagerBase(abc.ABC):
         self.keep_db = keep_db
         self.connection_defaults = connection_defaults
         self.in_docker = self._is_running_in_docker()
+        self._previous_default_database_key: Optional[str] = None
 
     @staticmethod
     def _is_running_in_docker():
@@ -91,6 +95,11 @@ class DbTestManagerBase(abc.ABC):
             **self.connection_defaults,
         )
 
+        # Make the test database the default as well, so code running outside this context (other threads,
+        # app event loops, or after reset_current_database) still uses it instead of the first registered database
+        self._previous_default_database_key = _get_explicit_default_database_key()
+        set_default_database_key(self.db_name)
+
         # Set the database if supported by the python runtime
         if is_set_current_database_supported():
             set_current_database(self.db_name)
@@ -99,6 +108,12 @@ class DbTestManagerBase(abc.ABC):
             self._wait_for_tables_exist()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
+        if _get_explicit_default_database_key() == self.db_name:
+            try:
+                set_default_database_key(self._previous_default_database_key)
+            except DBNotPreparedError:
+                # The previous default was removed in the meantime
+                set_default_database_key(None)
         if not self.keep_db:
             LOGGER.debug(f"Tearing down database : {self.db_name}")
             self._tear_down_test_db()

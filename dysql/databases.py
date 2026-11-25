@@ -20,6 +20,8 @@ logger = logging.getLogger("database")
 
 _DEFAULT_CONNECTION_PARAMS_BY_KEY = defaultdict(dict)
 CURRENT_DATABASE_VAR = contextvars.ContextVar("dysql_current_database", default="")
+# Database key used when no current database is set; None means the first registered key
+_DEFAULT_DATABASE_KEY: Optional[str] = None
 
 
 def set_database_init_hook(
@@ -60,6 +62,46 @@ def reset_current_database() -> None:
     set_current_database("")
 
 
+def get_default_database_key() -> Optional[str]:
+    """
+    The database key used when no current database is set: the key set with `set_default_database_key`,
+    otherwise the first key passed to `set_default_connection_parameters`.
+    :return: The default database key, or None if no databases have been set up
+    """
+    if _DEFAULT_DATABASE_KEY in _DEFAULT_CONNECTION_PARAMS_BY_KEY:
+        return _DEFAULT_DATABASE_KEY
+    if _DEFAULT_CONNECTION_PARAMS_BY_KEY:
+        return next(iter(_DEFAULT_CONNECTION_PARAMS_BY_KEY))
+    return None
+
+
+def _get_explicit_default_database_key() -> Optional[str]:
+    """
+    The key set with `set_default_database_key`, without the first-key fallback. Used to restore it later.
+    """
+    return _DEFAULT_DATABASE_KEY
+
+
+def set_default_database_key(database_key: Optional[str]) -> None:
+    """
+    Sets the database key used when no current database is set. Unlike `set_current_database`, this applies to
+    every thread and async context, not just the current one. Pass None to go back to using the first key passed
+    to `set_default_connection_parameters`.
+    :param database_key: a key previously passed to `set_default_connection_parameters`, or None
+    :raises DBNotPreparedError: if the key has no connection parameters
+    """
+    global _DEFAULT_DATABASE_KEY  # pylint: disable=global-statement
+    if (
+        database_key is not None
+        and database_key not in _DEFAULT_CONNECTION_PARAMS_BY_KEY
+    ):
+        raise DBNotPreparedError(
+            f"No connection parameters found for database key '{database_key}'"
+        )
+    _DEFAULT_DATABASE_KEY = database_key
+    logger.debug(f"Set default database to {database_key}")
+
+
 def _get_current_database_key() -> str:
     """
     The current database key, using contextvars (if on python 3.7+) or the default database key.
@@ -68,9 +110,8 @@ def _get_current_database_key() -> str:
     database: Optional[str] = None
     if CURRENT_DATABASE_VAR:
         database = CURRENT_DATABASE_VAR.get()
-    if not database and _DEFAULT_CONNECTION_PARAMS_BY_KEY:
-        # Get first database key
-        database = next(iter(_DEFAULT_CONNECTION_PARAMS_BY_KEY))
+    if not database:
+        database = get_default_database_key()
     return database
 
 
