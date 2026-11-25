@@ -6,6 +6,7 @@ NOTICE: Adobe permits you to use, modify, and distribute this file in accordance
 with the terms of the Adobe license agreement accompanying it.
 """
 
+import concurrent.futures
 from unittest import mock
 
 import pytest
@@ -41,6 +42,7 @@ def query():
 def fixture_mock_engine(mock_create_engine):
     dysql.databases.DatabaseContainerSingleton().clear()
     dysql.databases._DEFAULT_CONNECTION_PARAMS_BY_KEY.clear()
+    dysql.databases.set_default_database_key(None)
 
     # Reset the database before the test
     dysql.databases.reset_current_database()
@@ -238,3 +240,48 @@ def test_current_database_cached(mock_engine, mock_create_engine):
             pool_size=10,
         ),
     ]
+
+
+def test_default_database_is_first_registered(mock_engine):
+    set_default_connection_parameters("h1", "u1", "p1", "d1")
+    set_default_connection_parameters("h2", "u2", "p2", "d2")
+    assert dysql.databases.get_default_database_key() == "test"
+    assert (
+        dysql.databases.DatabaseContainerSingleton().current_database.database == "test"
+    )
+
+
+def test_set_default_database_key(mock_engine):
+    set_default_connection_parameters("h1", "u1", "p1", "d1")
+    set_default_connection_parameters("h2", "u2", "p2", "d2")
+    db_container = dysql.databases.DatabaseContainerSingleton()
+
+    dysql.databases.set_default_database_key("d2")
+    assert dysql.databases.get_default_database_key() == "d2"
+    assert db_container.current_database.database == "d2"
+
+    # The current database still takes precedence over the default
+    dysql.databases.set_current_database("d1")
+    assert db_container.current_database.database == "d1"
+    dysql.databases.reset_current_database()
+    assert db_container.current_database.database == "d2"
+
+    # None goes back to the first registered database
+    dysql.databases.set_default_database_key(None)
+    assert db_container.current_database.database == "test"
+
+
+def test_set_default_database_key_applies_to_other_threads(mock_engine):
+    set_default_connection_parameters("h2", "u2", "p2", "d2")
+    dysql.databases.set_default_database_key("d2")
+    with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+        key = executor.submit(dysql.databases._get_current_database_key).result()
+    assert key == "d2"
+
+
+def test_set_default_database_key_unknown():
+    with pytest.raises(DBNotPreparedError) as error:
+        dysql.databases.set_default_database_key("missing")
+    assert (
+        str(error.value) == "No connection parameters found for database key 'missing'"
+    )

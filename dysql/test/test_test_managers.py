@@ -9,6 +9,7 @@ with the terms of the Adobe license agreement accompanying it.
 import pytest
 from unittest.mock import patch
 
+import dysql.databases
 from dysql.test_managers import MariaDbTestManager
 
 
@@ -74,3 +75,53 @@ class TestMariaDbTestManager:
         assert mock_run.call_count == 1
         drop_call = mock_run.call_args_list[0]
         assert "DROP DATABASE IF EXISTS test_db" in drop_call[0][0]
+
+
+@pytest.fixture(name="clean_databases")
+def fixture_clean_databases():
+    dysql.databases._DEFAULT_CONNECTION_PARAMS_BY_KEY.clear()
+    dysql.databases.set_default_database_key(None)
+    dysql.databases.reset_current_database()
+    yield
+    dysql.databases._DEFAULT_CONNECTION_PARAMS_BY_KEY.clear()
+    dysql.databases.set_default_database_key(None)
+    dysql.databases.reset_current_database()
+
+
+@pytest.mark.usefixtures("clean_databases")
+@patch.object(MariaDbTestManager, "_run")
+class TestMariaDbTestManagerDefaultDatabase:
+    """
+    The test database becomes the default database while the manager is active, even if another database
+    was registered first (for example by the application under test).
+    """
+
+    def test_test_db_is_default_while_active(self, _mock_run):
+        dysql.databases.set_default_connection_parameters("h", "u", "p", "app_db")
+
+        with MariaDbTestManager(db_name="test_db"):
+            # Simulates code that does not see the current database (another thread or a reset context)
+            dysql.databases.reset_current_database()
+            assert dysql.databases._get_current_database_key() == "test_db"
+
+        assert dysql.databases.get_default_database_key() == "app_db"
+
+    def test_consecutive_managers(self, _mock_run):
+        dysql.databases.set_default_connection_parameters("h", "u", "p", "app_db")
+
+        with MariaDbTestManager(db_name="test_db1"):
+            assert dysql.databases.get_default_database_key() == "test_db1"
+        with MariaDbTestManager(db_name="test_db2"):
+            assert dysql.databases.get_default_database_key() == "test_db2"
+
+        assert dysql.databases.get_default_database_key() == "app_db"
+
+    def test_restores_explicit_default(self, _mock_run):
+        dysql.databases.set_default_connection_parameters("h", "u", "p", "app_db")
+        dysql.databases.set_default_connection_parameters("h", "u", "p", "other_db")
+        dysql.databases.set_default_database_key("other_db")
+
+        with MariaDbTestManager(db_name="test_db"):
+            assert dysql.databases.get_default_database_key() == "test_db"
+
+        assert dysql.databases.get_default_database_key() == "other_db"

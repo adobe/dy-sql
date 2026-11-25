@@ -140,6 +140,12 @@ database-per-tenant configurations. This may be done using various provided meth
     def tenant_query_with_decorator():
         return QueryData("SELECT * FROM users")
 
+When no current database is set, queries use the default database: the first database key passed to
+``set_default_connection_parameters``. Use ``set_default_database_key`` to choose a different default. Unlike
+``set_current_database``, this applies to every thread and async context. ``get_default_database_key`` returns the
+default in use. The test managers make their test database the default while they are active and restore the
+previous default afterwards.
+
 Decorators
 ==========
 Decorators are an easy way for us to tell a function to be a 'query' and return
